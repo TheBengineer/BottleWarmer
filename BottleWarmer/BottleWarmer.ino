@@ -5,20 +5,34 @@
 
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include "ESPRotary.h"
 
-// GPIO where the DS18B20 is connected to
-const int oneWireBus = 0;     
+#define ROTARY_PIN1	15
+#define ROTARY_PIN2	13
+#define CLICKS_PER_STEP 4   
+#define ROTARY_BUTTON	12
 
-// Setup a oneWire instance to communicate with any OneWire devices
-OneWire oneWire(oneWireBus);
+#define RELAY_PIN	2
 
+#define TEMPERATURE_PIN	0
+
+
+
+OneWire oneWire(TEMPERATURE_PIN);
 DallasTemperature sensors(&oneWire);
-// Based on the OneWire library example
+ESPRotary r;
 
 
 void setup(void) {
   Serial.begin(74880);
   sensors.begin();
+
+  r.begin(ROTARY_PIN1, ROTARY_PIN2, CLICKS_PER_STEP);
+  r.setChangedHandler(rotate);
+  r.setLeftRotationHandler(showDirection);
+  r.setRightRotationHandler(showDirection);
+
+  pinMode(RELAY_PIN, OUTPUT);
 }
 
 void loop(void) {
@@ -29,5 +43,15 @@ void loop(void) {
   Serial.print("ºF, ");
   Serial.print(temperatureF2);
   Serial.println("ºF");
-  delay(5000);
+  delay(500);
+}
+
+// on change
+void rotate(ESPRotary& r) {
+   Serial.println(r.getPosition());
+}
+
+// on left or right rotattion
+void showDirection(ESPRotary& r) {
+  Serial.println(r.directionToString(r.getDirection()));
 }
