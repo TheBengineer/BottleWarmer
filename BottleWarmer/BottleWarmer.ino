@@ -146,7 +146,7 @@ void setupOTA() {
     int percent = (progress / (total / 100));
     Serial.printf("Progress: %u%%\r", percent);
     display.fillRect(106, 8, 24, 8, 0x00);  // bank out the current progress
-    display.fillRect(2, 10, percent, 3, SSD1306_WHITE);  // bank out the current progress
+    display.fillRect(2, 11, percent, 3, SSD1306_WHITE);  // bank out the current progress
     display.setCursor(106, 8);
     display.printf("%u%%\r", percent);
     display.display();
