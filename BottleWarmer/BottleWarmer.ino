@@ -29,7 +29,7 @@
 #define SCREEN_SDA 4
 #define SCREEN_SCL 5
 #define SCREEN_WIDTH 128     // OLED display width, in pixels
-#define SCREEN_HEIGHT 32     // OLED display height, in pixels
+#define SCREEN_HEIGHT 64     // OLED display height, in pixels
 #define SCREEN_ADDRESS 0x3C  ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 
 #define ROTARY_PIN1 14   //D5
@@ -78,14 +78,18 @@ void setup(void) {
   WiFi.mode(WIFI_STA);
   WiFiManager wifiManager;
   if (!wifiManager.autoConnect(DEVICE_NAME)) {
+    display.clearDisplay();
+    display.println("WIFI not connected.");
+    display.display();
     delay(3000);
     ESP.reset();
     delay(5000);
   }
-  Serial.print("Connected to ");
-  Serial.println(WiFi.SSID());
-  Serial.print("With IP:");
-  Serial.println(WiFi.localIP());
+  display.print("Connected to ");
+  display.println(WiFi.SSID());
+  display.print("With IP:");
+  display.println(WiFi.localIP());
+  display.display();
 
   t.attach(30, reconnect_wifi);
 
@@ -121,24 +125,36 @@ void loop(void) {
 void setupOTA() {
   ArduinoOTA.setPassword((const char*)"admin");
   ArduinoOTA.onStart([]() {
-    Serial.println("Start");
+    Serial.println("OTA Start");
+    display.clearDisplay();
+    display.println("OTA Start");
+    display.display();
   });
   ArduinoOTA.onEnd([]() {
     Serial.println("\nEnd");
+    display.println("\nEnd");
+    display.display();
   });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
     Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+    display.setCursor(0, 3);  
+    display.printf("Progress: %u%%\r", (progress / (total / 100)));
+    display.display();
   });
   ArduinoOTA.onError([](ota_error_t error) {
     Serial.printf("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-    else if (error == OTA_END_ERROR) Serial.println("End Failed");
+    String msg = "";
+    if (error == OTA_AUTH_ERROR) msg ="Auth Failed";
+    else if (error == OTA_BEGIN_ERROR) msg ="Begin Failed";
+    else if (error == OTA_CONNECT_ERROR) msg ="Connect Failed";
+    else if (error == OTA_RECEIVE_ERROR) msg ="Receive Failed";
+    else if (error == OTA_END_ERROR) msg ="End Failed";
+    Serial.println(msg);
+    display.println(msg);
+    display.display();
   });
   ArduinoOTA.begin();
-  Serial.println("OTA Ready");
+  display.println("OTA Ready");
 }
 
 void setupServer() {
