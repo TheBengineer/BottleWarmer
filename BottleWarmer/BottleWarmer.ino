@@ -46,11 +46,11 @@
 float temperatureF = 0;
 float temperatureF2 = 0;
 
+long buttonPressTime = 0;
 
 OneWire oneWire(TEMPERATURE_PIN);
 DallasTemperature sensors(&oneWire);
 ESPRotary r;
-Button2 b;
 Ticker t;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
@@ -62,6 +62,19 @@ void setup(void) {
   Serial.begin(74880);
   Serial.println("BottleWarmer Starting");
 
+  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    delay(3000);
+    ESP.reset();
+    delay(5000);
+  }
+  display.clearDisplay();
+  display.setTextSize(1);               // Normal 1:1 pixel scale
+  display.setTextColor(SSD1306_WHITE);  // Draw white text
+  display.setCursor(0, 0);              // Start at top-left corner
+  display.println(F("Bottle Warmer"));
+  display.display();
+
   WiFi.mode(WIFI_STA);
   WiFiManager wifiManager;
   if (!wifiManager.autoConnect(DEVICE_NAME)) {
@@ -69,6 +82,11 @@ void setup(void) {
     ESP.reset();
     delay(5000);
   }
+  Serial.print("Connected to ");
+  Serial.println(WiFi.SSID());
+  Serial.print("With IP:");
+  Serial.println(WiFi.localIP());
+
   t.attach(30, reconnect_wifi);
 
   setupOTA();
@@ -82,26 +100,17 @@ void setup(void) {
   r.setChangedHandler(rotate);
   r.setLeftRotationHandler(showDirection);
   r.setRightRotationHandler(showDirection);
-  b.begin(ROTARY_BUTTON);
-  b.setTapHandler(click);
-  b.setLongClickHandler(longClick);
+  pinMode(ROTARY_BUTTON, INPUT);
+  attachInterrupt(digitalPinToInterrupt(ROTARY_PIN1), handleLoop, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ROTARY_PIN2), handleLoop, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ROTARY_BUTTON), buttonDown, FALLING);
+  attachInterrupt(digitalPinToInterrupt(ROTARY_BUTTON), buttonUp, RISING);
+
 
   pinMode(RELAY_PIN, OUTPUT);
 
-  attachInterrupt(digitalPinToInterrupt(ROTARY_PIN1), handleLoop, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(ROTARY_PIN2), handleLoop, CHANGE);
 
-  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-    Serial.println(F("SSD1306 allocation failed"));
-    for (;;)
-      ;  // Don't proceed, loop forever
-  }
-  display.clearDisplay();
-  display.setTextSize(1);               // Normal 1:1 pixel scale
-  display.setTextColor(SSD1306_WHITE);  // Draw white text
-  display.setCursor(0, 0);              // Start at top-left corner
-  display.println(F("Bottle Warmer"));
-  display.display();
+  
 
   timeClient.begin();
   t.attach(3600, timeClient.update);
@@ -109,7 +118,6 @@ void setup(void) {
 
 void loop(void) {
   ArduinoOTA.handle();
-
 }
 
 void setupOTA() {
@@ -135,7 +143,7 @@ void setupOTA() {
   Serial.println("OTA Ready");
 }
 
-void setupServer(){
+void setupServer() {
   server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
     request->send(200, "text/html", BuildSensorJson());
   });
@@ -181,22 +189,25 @@ void setupServer(){
 
 void reconnect_wifi() {  //function to reconnect wifi if its not connected
   if (!wifi_isconnected()) {
-    WiFi.begin(ssid.c_str(), password.c_str());
     Serial.print("Connecting to: ");
     Serial.println(ssid);
-    while (!wifi_isconnected()) {
+
+    if (!wifiManager.autoConnect(DEVICE_NAME)) {
       delay(1000);
       Serial.print(".");
     }
+
     Serial.println();
     Serial.print("Got IP: ");
     Serial.println(WiFi.localIP());
   }
 }
 
-void click(){}
+ICACHE_RAM_ATTR void buttonUp() {}
 
-void longClick(){}
+ICACHE_RAM_ATTR void buttonDown() {
+  buttonPressTime = millis();
+}
 
 void updateTemperature() {
   sensors.requestTemperatures();
