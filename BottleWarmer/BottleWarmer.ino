@@ -127,30 +127,32 @@ void setupOTA() {
   ArduinoOTA.onStart([]() {
     Serial.println("OTA Start");
     display.clearDisplay();
-    display.println("OTA Start");
+    display.setCursor(0, 0);
+    display.println("OTA Start\nProgress:");
     display.display();
   });
   ArduinoOTA.onEnd([]() {
-    Serial.println("\nEnd");
-    display.println("\nEnd");
+    Serial.println("\nDone");
+    display.println("\nDone");
     display.display();
   });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
     Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-    display.setCursor(0, 3);  
-    display.printf("Progress: %u%%\r", (progress / (total / 100)));
+    display.fillRect(54, 8, 24, 8, 0x00);  // bank out the current progress
+    display.setCursor(54, 8);
+    display.printf("%u%%\r", (progress / (total / 100)));
     display.display();
   });
   ArduinoOTA.onError([](ota_error_t error) {
     Serial.printf("Error[%u]: ", error);
     String msg = "";
-    if (error == OTA_AUTH_ERROR) msg ="Auth Failed";
-    else if (error == OTA_BEGIN_ERROR) msg ="Begin Failed";
-    else if (error == OTA_CONNECT_ERROR) msg ="Connect Failed";
-    else if (error == OTA_RECEIVE_ERROR) msg ="Receive Failed";
-    else if (error == OTA_END_ERROR) msg ="End Failed";
+    if (error == OTA_AUTH_ERROR) msg = "Auth Failed";
+    else if (error == OTA_BEGIN_ERROR) msg = "Begin Failed";
+    else if (error == OTA_CONNECT_ERROR) msg = "Connect Failed";
+    else if (error == OTA_RECEIVE_ERROR) msg = "Receive Failed";
+    else if (error == OTA_END_ERROR) msg = "End Failed";
     Serial.println(msg);
-    display.println(msg);
+    display.println("\n" + msg);
     display.display();
   });
   ArduinoOTA.begin();
