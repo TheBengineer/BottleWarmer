@@ -1,13 +1,16 @@
 import os
-from scipy import misc
+from PIL import Image
 
-path = 'bottle.bmp'
-image = misc.imread(os.path.join(path, 'image.bmp'), flatten=0)
+img = Image.open('bottle.bmp')
 
-image_width = image.shape[0]
-image_height = image.shape[1]
+image_width = img.size[0]
+image_height = img.size[1]
 
 # print image as strings of hex
-for i in range(image_width):
-    row = image[i]
-    print(hex(row))
+for i in range(image_height):
+    binary = 0
+    for j in range(image_width):
+        p = img.getpixel((j, i))
+        if p != 0:
+            binary |= 1 << j
+    print(hex(binary), ",")

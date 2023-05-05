@@ -113,7 +113,7 @@ void setup(void) {
   
 
   timeClient.begin();
-  t.attach(3600, timeClient.update);
+  t.attach(3600, updateTime);
 }
 
 void loop(void) {
@@ -213,6 +213,10 @@ void updateTemperature() {
   sensors.requestTemperatures();
   temperatureF = sensors.getTempFByIndex(0);
   temperatureF2 = sensors.getTempFByIndex(1);
+}
+
+void updateTime(){
+  timeClient.update();
 }
 
 void updateScreen() {
