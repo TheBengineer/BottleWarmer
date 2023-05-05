@@ -45,19 +45,22 @@
 
 float temperatureF = 0;
 float temperatureF2 = 0;
+float setTemperature = 104;
 
 long buttonPressTime = 0;
 
-static const unsigned char PROGMEM logo_bmp[] = { 0x1, 0x80, 0x2, 0x40, 0x2, 0x40, 0x2, 0x40, 0x2, 0x40, 0x4, 0x20, 0x8, 0x10, 0x10, 0x8, 0x3f, 0xfc, 0x40, 0x2,
-                                                  0x40, 0x2, 0x40, 0x2, 0x7f, 0xfe, 0x20, 0x4, 0x40, 0x2, 0x81, 0x81, 0x80, 0x1, 0x80, 0x1, 0x80, 0x1, 0x81, 0x81,
-                                                  0x80, 0x1, 0x80, 0x1, 0x80, 0x1, 0x81, 0x81, 0x80, 0x1, 0x80, 0x1, 0x80, 0x1, 0x81, 0x81, 0x80, 0x1, 0x80, 0x1,
-                                                  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xf9, 0x9f, 0xf6, 0x6f, 0xf7, 0xef, 0xfb, 0xdf, 0xfd, 0xbf,
-                                                  0xfe, 0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0xfe, 0x3f, 0xfc };
+static const unsigned char PROGMEM bottle_bmp[] = { 0x1, 0x80, 0x2, 0x40, 0x2, 0x40, 0x2, 0x40, 0x2, 0x40, 0x4, 0x20, 0x8, 0x10, 0x10, 0x8, 0x3f, 0xfc, 0x40, 0x2,
+                                                    0x40, 0x2, 0x40, 0x2, 0x7f, 0xfe, 0x20, 0x4, 0x40, 0x2, 0x81, 0x81, 0x80, 0x1, 0x80, 0x1, 0x80, 0x1, 0x81, 0x81,
+                                                    0x80, 0x1, 0x80, 0x1, 0x80, 0x1, 0x81, 0x81, 0x80, 0x1, 0x80, 0x1, 0x80, 0x1, 0x81, 0x81, 0x80, 0x1, 0x80, 0x1,
+                                                    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xf9, 0x9f, 0xf6, 0x6f, 0xf7, 0xef, 0xfb, 0xdf, 0xfd, 0xbf,
+                                                    0xfe, 0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0xfe, 0x3f, 0xfc };
 
 OneWire oneWire(TEMPERATURE_PIN);
 DallasTemperature sensors(&oneWire);
 ESPRotary r;
-Ticker t;
+Ticker tickerTemperature;
+Ticker tickerWifi;
+Ticker tickerNTP;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 WiFiUDP ntpUDP;
@@ -66,7 +69,7 @@ ESP8266WebServer server(80);
 
 void setup(void) {
   Serial.begin(74880);
-  Serial.println("BottleWarmer Starting");
+  Serial.println(F("BottleWarmer Starting"));
 
   if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
@@ -79,36 +82,37 @@ void setup(void) {
   display.setTextColor(SSD1306_WHITE);  // Draw white text
   display.setCursor(0, 0);              // Start at top-left corner
   display.println(F("Bottle Warmer"));
-  display.drawBitmap(8, 16, logo_bmp, 16, 45, SSD1306_WHITE);
-  display.drawBitmap(40, 16, logo_bmp, 16, 45, SSD1306_WHITE);
-  display.drawBitmap(72, 16, logo_bmp, 16, 45, SSD1306_WHITE);
-  display.drawBitmap(104, 16, logo_bmp, 16, 45, SSD1306_WHITE);
+  display.drawBitmap(8, 16, bottle_bmp, 16, 45, SSD1306_WHITE);
+  display.drawBitmap(40, 16, bottle_bmp, 16, 45, SSD1306_WHITE);
+  display.drawBitmap(72, 16, bottle_bmp, 16, 45, SSD1306_WHITE);
+  display.drawBitmap(104, 16, bottle_bmp, 16, 45, SSD1306_WHITE);
   display.display();
 
   WiFi.mode(WIFI_STA);
   WiFiManager wifiManager;
   if (!wifiManager.autoConnect(DEVICE_NAME)) {
     display.clearDisplay();
-    display.println("WIFI not connected.");
+    display.println(F("WIFI not connected."));
     display.display();
     delay(3000);
     ESP.reset();
     delay(5000);
   }
-  display.print("Connected to ");
+  clearText();
+  display.print(F("Connected to "));
   display.println(WiFi.SSID());
-  display.print("With IP:");
+  display.print(F("With IP:"));
   display.println(WiFi.localIP());
   display.display();
 
-  t.attach(30, reconnect_wifi);
+  //tickerWifi.attach(30, reconnect_wifi);
 
   setupOTA();
 
   setupServer();
 
   sensors.begin();
-  t.attach_ms(500, updateTemperature);
+  //tickerTemperature.attach_ms(500, updateTemperature);
 
   r.begin(ROTARY_PIN1, ROTARY_PIN2, CLICKS_PER_STEP);
   r.setChangedHandler(rotate);
@@ -124,7 +128,10 @@ void setup(void) {
 
 
   timeClient.begin();
-  t.attach(3600, updateTime);
+  //tickerNTP.attach(3600, updateTime);
+  clearText();
+  display.print(F("Bottle Warmer"));
+  display.display();
 }
 
 void loop(void) {
@@ -135,16 +142,16 @@ void loop(void) {
 void setupOTA() {
   ArduinoOTA.setPassword((const char*)"admin");
   ArduinoOTA.onStart([]() {
-    Serial.println("OTA Start");
+    Serial.println(F("OTA Start"));
     display.clearDisplay();
     display.setCursor(0, 0);
-    display.println("OTA Start");
+    display.println(F("OTA Updating"));
     display.drawRect(0, 9, 104, 7, SSD1306_WHITE);
     display.display();
   });
   ArduinoOTA.onEnd([]() {
-    Serial.println("\nDone");
-    display.println("\nDone");
+    Serial.println(F("\nDone"));
+    display.println(F("\nDone"));
     display.display();
   });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
@@ -169,16 +176,16 @@ void setupOTA() {
     display.display();
   });
   ArduinoOTA.begin();
+  clearText();
   display.println("OTA Ready");
+  display.display();
 }
 
 void setupServer() {
   server.on("/", HTTP_GET, []() {
     server.send(200, "text/html", BuildSensorJson());
   });
-
   server.onNotFound(handle_NotFound);
-
   server.begin();
 }
 
@@ -208,6 +215,17 @@ ICACHE_RAM_ATTR void buttonUp() {}
 ICACHE_RAM_ATTR void buttonDown() {
   buttonPressTime = millis();
 }
+
+void wipeYellow() {
+  display.fillRect(0, 0, 128, 16, 0x00);
+  display.display();
+}
+
+void clearText() {
+  wipeYellow();
+  display.setCursor(0, 0);
+}
+
 
 void updateTemperature() {
   sensors.requestTemperatures();
@@ -251,6 +269,7 @@ String BuildSensorJson() {
   DynamicJsonDocument result_json(1024);
   result_json["t1"] = temperatureF;
   result_json["t2"] = temperatureF;
+  result_json["set"] = setTemperature;
   result_json["time"] = timeClient.getFormattedTime();
 
   String message = "";
