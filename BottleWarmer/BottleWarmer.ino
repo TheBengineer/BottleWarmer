@@ -147,40 +147,6 @@ void setupServer() {
   server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
     request->send(200, "text/html", BuildSensorJson());
   });
-  server.on("/calibrate", HTTP_ANY, [](AsyncWebServerRequest* request) {
-    int paramsNr = request->params();
-    Serial.println(paramsNr);
-    bool updated = false;
-
-    for (int i = 0; i < paramsNr; i++) {
-
-      AsyncWebParameter* p = request->getParam(i);
-      if (p->name() == "phm") {
-        PH_m = p->value().toFloat();
-        updated = true;
-      }
-      if (p->name() == "phb") {
-        PH_b = p->value().toFloat();
-        updated = true;
-      }
-      if (p->name() == "ecm") {
-        EC_m = p->value().toFloat();
-        updated = true;
-      }
-      if (p->name() == "ecb") {
-        EC_b = p->value().toFloat();
-        updated = true;
-      }
-    }
-    if (updated) {
-      EEPROM.put(0, PH_m);
-      EEPROM.put(4, PH_b);
-      EEPROM.put(8, EC_m);
-      EEPROM.put(12, EC_b);
-      EEPROM.commit();
-    }
-    request->send(200, "text/html", BuildCalibrationPage());
-  });
   server.onNotFound(handle_NotFound);
 
   server.begin();
@@ -245,4 +211,16 @@ void rotate(ESPRotary& r) {
 // on left or right rotattion
 void showDirection(ESPRotary& r) {
   Serial.println(r.directionToString(r.getDirection()));
+}
+
+String BuildSensorJson() {
+  DynamicJsonDocument result_json(1024);
+  result_json["t1"] = temperatureF;
+  result_json["t2"] = temperatureF;
+  result_json["time"] = timeClient.getFormattedTime();
+
+  String message = "";
+  serializeJson(result_json, message);
+
+  return message;
 }
