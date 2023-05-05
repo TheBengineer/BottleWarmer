@@ -46,6 +46,12 @@
 float temperatureF = 0;
 float temperatureF2 = 0;
 float setTemperature = 104;
+bool updateTemperatureNow = true;
+
+
+bool updateWIFINow = false;
+bool updateNTPNow = true;
+
 
 long buttonPressTime = 0;
 
@@ -105,14 +111,18 @@ void setup(void) {
   display.println(WiFi.localIP());
   display.display();
 
-  //tickerWifi.attach(30, reconnect_wifi);
+  tickerWifi.attach(30, []() {
+    updateWIFINow = true;
+  });
 
   setupOTA();
 
   setupServer();
 
   sensors.begin();
-  //tickerTemperature.attach_ms(500, updateTemperature);
+  tickerTemperature.attach_ms(500, []() {
+    updateTemperatureNow = true;
+  });
 
   r.begin(ROTARY_PIN1, ROTARY_PIN2, CLICKS_PER_STEP);
   r.setChangedHandler(rotate);
@@ -128,15 +138,21 @@ void setup(void) {
 
 
   timeClient.begin();
-  //tickerNTP.attach(3600, updateTime);
+  tickerNTP.attach(3600, []() {
+    updateNTPNow = true;
+  });
   clearText();
   display.print(F("Bottle Warmer"));
   display.display();
 }
 
 void loop(void) {
+  reconnect_wifi();
   ArduinoOTA.handle();
+  updateTemperature();
   server.handleClient();
+  updateTime();
+  handleInterface();
 }
 
 void setupOTA() {
@@ -194,19 +210,22 @@ void handle_NotFound() {
 }
 
 void reconnect_wifi() {  //function to reconnect wifi if its not connected
-  if (!WiFi.status() == WL_CONNECTED) {
-    Serial.print("Connecting to: ");
-    Serial.println(WiFi.SSID());
+  if (updateWIFINow) {
+    if (!WiFi.status() == WL_CONNECTED) {
+      Serial.print("Connecting to: ");
+      Serial.println(WiFi.SSID());
 
-    WiFiManager wifiManager;
-    if (!wifiManager.autoConnect(DEVICE_NAME)) {
-      delay(1000);
-      Serial.print(".");
+      WiFiManager wifiManager;
+      if (!wifiManager.autoConnect(DEVICE_NAME)) {
+        delay(1000);
+        Serial.print(".");
+      }
+
+      Serial.println();
+      Serial.print("Got IP: ");
+      Serial.println(WiFi.localIP());
     }
-
-    Serial.println();
-    Serial.print("Got IP: ");
-    Serial.println(WiFi.localIP());
+    updateWIFINow = false;
   }
 }
 
@@ -226,15 +245,24 @@ void clearText() {
   display.setCursor(0, 0);
 }
 
-
 void updateTemperature() {
-  sensors.requestTemperatures();
-  temperatureF = sensors.getTempFByIndex(0);
-  temperatureF2 = sensors.getTempFByIndex(1);
+  if (updateTemperatureNow) {
+    sensors.requestTemperatures();
+    temperatureF = sensors.getTempFByIndex(0);
+    temperatureF2 = sensors.getTempFByIndex(1);
+    updateTemperatureNow = false;
+  }
 }
 
+
 void updateTime() {
-  timeClient.update();
+  if (updateNTPNow) {
+    timeClient.update();
+    updateNTPNow = false;
+  }
+}
+
+void handleInterface() {
 }
 
 void updateScreen() {
@@ -268,7 +296,7 @@ void showDirection(ESPRotary& r) {
 String BuildSensorJson() {
   DynamicJsonDocument result_json(1024);
   result_json["t1"] = temperatureF;
-  result_json["t2"] = temperatureF;
+  result_json["t2"] = temperatureF2;
   result_json["set"] = setTemperature;
   result_json["time"] = timeClient.getFormattedTime();
 
