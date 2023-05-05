@@ -7,14 +7,13 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 // Rotary + button
-#include "ESPRotary.h"
-#include "Button2.h"
+#include "ESPRotary.h"  // https://github.com/LennartHennigs/ESPRotary
+#include "Button2.h"    // https://github.com/LennartHennigs/Button2
 // Wifi
 #include <ESP8266WiFi.h>
 #include <WiFiManager.h>
 // HTTP
-#include <ESP8266HTTPUpdateServer.h>
-#include <ESP8266WebServer.h>
+#include <ESPAsyncWebServer.h>
 // OTA
 #include <ArduinoOTA.h>
 // Screen
@@ -51,13 +50,13 @@ float temperatureF2 = 0;
 OneWire oneWire(TEMPERATURE_PIN);
 DallasTemperature sensors(&oneWire);
 ESPRotary r;
+Button2 b;
 Ticker t;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP);
-ESP8266WebServer server(80);
-ESP8266HTTPUpdateServer httpUpdateServer;
+AsyncWebServer server(80);
 
 void setup(void) {
   Serial.begin(74880);
@@ -70,19 +69,24 @@ void setup(void) {
     ESP.reset();
     delay(5000);
   }
+  t.attach(30, reconnect_wifi);
 
   setupOTA();
 
+  setupServer();
+
   sensors.begin();
   t.attach_ms(500, updateTemperature);
-  pinMode(RELAY_PIN, OUTPUT);
 
-  pinMode(ROTARY_BUTTON, INPUT);
   r.begin(ROTARY_PIN1, ROTARY_PIN2, CLICKS_PER_STEP);
   r.setChangedHandler(rotate);
   r.setLeftRotationHandler(showDirection);
   r.setRightRotationHandler(showDirection);
+  b.begin(ROTARY_BUTTON);
+  b.setTapHandler(click);
+  b.setLongClickHandler(longClick);
 
+  pinMode(RELAY_PIN, OUTPUT);
 
   attachInterrupt(digitalPinToInterrupt(ROTARY_PIN1), handleLoop, CHANGE);
   attachInterrupt(digitalPinToInterrupt(ROTARY_PIN2), handleLoop, CHANGE);
@@ -100,25 +104,13 @@ void setup(void) {
   display.display();
 
   timeClient.begin();
+  t.attach(3600, timeClient.update);
 }
 
 void loop(void) {
-  updateTemperature();
-  r.loop();
   ArduinoOTA.handle();
-  Serial.print(temperatureF);
-  Serial.print("ºF, ");
-  Serial.print(temperatureF2);
-  Serial.print("ºF, ");
-  Serial.print(digitalRead(ROTARY_BUTTON));
-  Serial.print(", ");
-  Serial.println(r.getPosition());
 
-  timeClient.update();
-
-  Serial.println(timeClient.getFormattedTime());
 }
-
 
 void setupOTA() {
   ArduinoOTA.setPassword((const char*)"admin");
@@ -143,6 +135,68 @@ void setupOTA() {
   Serial.println("OTA Ready");
 }
 
+void setupServer(){
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
+    request->send(200, "text/html", BuildSensorJson());
+  });
+  server.on("/calibrate", HTTP_ANY, [](AsyncWebServerRequest* request) {
+    int paramsNr = request->params();
+    Serial.println(paramsNr);
+    bool updated = false;
+
+    for (int i = 0; i < paramsNr; i++) {
+
+      AsyncWebParameter* p = request->getParam(i);
+      if (p->name() == "phm") {
+        PH_m = p->value().toFloat();
+        updated = true;
+      }
+      if (p->name() == "phb") {
+        PH_b = p->value().toFloat();
+        updated = true;
+      }
+      if (p->name() == "ecm") {
+        EC_m = p->value().toFloat();
+        updated = true;
+      }
+      if (p->name() == "ecb") {
+        EC_b = p->value().toFloat();
+        updated = true;
+      }
+    }
+    if (updated) {
+      EEPROM.put(0, PH_m);
+      EEPROM.put(4, PH_b);
+      EEPROM.put(8, EC_m);
+      EEPROM.put(12, EC_b);
+      EEPROM.commit();
+    }
+    request->send(200, "text/html", BuildCalibrationPage());
+  });
+  server.onNotFound(handle_NotFound);
+
+  server.begin();
+  Serial.println("HTTP server started");
+}
+
+void reconnect_wifi() {  //function to reconnect wifi if its not connected
+  if (!wifi_isconnected()) {
+    WiFi.begin(ssid.c_str(), password.c_str());
+    Serial.print("Connecting to: ");
+    Serial.println(ssid);
+    while (!wifi_isconnected()) {
+      delay(1000);
+      Serial.print(".");
+    }
+    Serial.println();
+    Serial.print("Got IP: ");
+    Serial.println(WiFi.localIP());
+  }
+}
+
+void click(){}
+
+void longClick(){}
 
 void updateTemperature() {
   sensors.requestTemperatures();
