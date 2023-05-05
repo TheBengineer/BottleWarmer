@@ -128,7 +128,8 @@ void setupOTA() {
     Serial.println("OTA Start");
     display.clearDisplay();
     display.setCursor(0, 0);
-    display.println("OTA Start\nProgress:");
+    display.println("OTA Start");
+    display.drawRect(0, 9, 104, 7, 0xFFFF);
     display.display();
   });
   ArduinoOTA.onEnd([]() {
@@ -137,10 +138,12 @@ void setupOTA() {
     display.display();
   });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-    display.fillRect(54, 8, 24, 8, 0x00);  // bank out the current progress
-    display.setCursor(54, 8);
-    display.printf("%u%%\r", (progress / (total / 100)));
+    int percent = (progress / (total / 100));
+    Serial.printf("Progress: %u%%\r", percent);
+    display.fillRect(106, 8, 24, 8, 0x00);  // bank out the current progress
+    display.fillRect(2, 2, percent, 3, 0xFFFF);  // bank out the current progress
+    display.setCursor(106, 8);
+    display.printf("%u%%\r", percent);
     display.display();
   });
   ArduinoOTA.onError([](ota_error_t error) {
