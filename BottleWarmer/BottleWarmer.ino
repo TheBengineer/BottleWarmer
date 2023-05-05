@@ -13,7 +13,7 @@
 #include <ESP8266WiFi.h>
 #include <WiFiManager.h>
 // HTTP
-#include <ESPAsyncWebServer.h>
+#include <ESP8266WebServer.h>
 // OTA
 #include <ArduinoOTA.h>
 // Screen
@@ -56,7 +56,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP);
-AsyncWebServer server(80);
+ESP8266WebServer server(80);
 
 void setup(void) {
   Serial.begin(74880);
@@ -106,11 +106,8 @@ void setup(void) {
   attachInterrupt(digitalPinToInterrupt(ROTARY_BUTTON), buttonDown, FALLING);
   attachInterrupt(digitalPinToInterrupt(ROTARY_BUTTON), buttonUp, RISING);
 
-
   pinMode(RELAY_PIN, OUTPUT);
 
-
-  
 
   timeClient.begin();
   t.attach(3600, updateTime);
@@ -118,6 +115,7 @@ void setup(void) {
 
 void loop(void) {
   ArduinoOTA.handle();
+  server.handleClient();
 }
 
 void setupOTA() {
@@ -144,20 +142,25 @@ void setupOTA() {
 }
 
 void setupServer() {
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
-    request->send(200, "text/html", BuildSensorJson());
+  server.on("/", HTTP_GET, []() {
+    server.send(200, "text/html", BuildSensorJson());
   });
+
   server.onNotFound(handle_NotFound);
 
   server.begin();
-  Serial.println("HTTP server started");
+}
+
+void handle_NotFound() {
+  server.send(404, "text/plain", F("Not Found\n\n"));
 }
 
 void reconnect_wifi() {  //function to reconnect wifi if its not connected
-  if (!wifi_isconnected()) {
+  if (!WiFi.status() == WL_CONNECTED) {
     Serial.print("Connecting to: ");
-    Serial.println(ssid);
+    Serial.println(WiFi.SSID());
 
+    WiFiManager wifiManager;
     if (!wifiManager.autoConnect(DEVICE_NAME)) {
       delay(1000);
       Serial.print(".");
@@ -181,7 +184,7 @@ void updateTemperature() {
   temperatureF2 = sensors.getTempFByIndex(1);
 }
 
-void updateTime(){
+void updateTime() {
   timeClient.update();
 }
 
