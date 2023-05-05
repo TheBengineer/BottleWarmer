@@ -25,16 +25,19 @@
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
 #define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 
-#define ROTARY_PIN1	15
-#define ROTARY_PIN2	13
+#define ROTARY_PIN1	14 //D5
+#define ROTARY_PIN2	12 //D6
+#define ROTARY_BUTTON	2 //D4
 #define CLICKS_PER_STEP 4   
-#define ROTARY_BUTTON	12
 
-#define RELAY_PIN	2
+#define RELAY_PIN	15 //D8
 
-#define TEMPERATURE_PIN	0
+#define TEMPERATURE_PIN	16 //D0
 
 #define DEVICE_NAME "BottleWarmer"
+
+float temperatureF = 0;
+float temperatureF2 = 0;
 
 
 
@@ -46,6 +49,10 @@ ESP8266WebServer server(80);
 ESP8266HTTPUpdateServer httpUpdateServer;
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+
+
+
 
 void setup(void) {
   Serial.begin(74880);
@@ -107,9 +114,9 @@ void setup(void) {
 }
 
 void loop(void) {
-  sensors.requestTemperatures(); 
-  float temperatureF = sensors.getTempFByIndex(0);
-  float temperatureF2 = sensors.getTempFByIndex(1);
+  updateTemperature();
+  r.loop();
+  ArduinoOTA.handle();
   Serial.print(temperatureF);
   Serial.print("ºF, ");
   Serial.print(temperatureF2);
@@ -117,7 +124,22 @@ void loop(void) {
   Serial.print(digitalRead(ROTARY_BUTTON));
   Serial.print(", ");
   Serial.println(r.getPosition());
-  delay(500);
+  
+  display.clearDisplay();
+  display.setCursor(0,0);
+  display.print(temperatureF);
+  display.println("ºF");
+  display.print(temperatureF2);
+  display.println("ºF");
+  display.println(digitalRead(ROTARY_BUTTON));
+  display.println(r.getPosition());
+  display.display();
+}
+
+void updateTemperature(){
+  sensors.requestTemperatures(); 
+  temperatureF = sensors.getTempFByIndex(0);
+  temperatureF2 = sensors.getTempFByIndex(1);
 }
 
 // on change
