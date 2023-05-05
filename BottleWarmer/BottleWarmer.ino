@@ -48,6 +48,11 @@ float temperatureF2 = 0;
 
 long buttonPressTime = 0;
 
+static const unsigned char PROGMEM logo_bmp[] = {0x180, 0x240, 0x240, 0x240, 0x240, 0x420, 0x810, 0x1008, 0x3ffc, 0x4002, 0x4002, 0x4002, 0x7ffe, 0x2004, 0x4002,
+        0x8181, 0x8001, 0x8001, 0x8001, 0x8181, 0x8001, 0x8001, 0x8001, 0x8181, 0x8001, 0x8001, 0x8001, 0x8181, 0x8001,
+        0x8001, 0xffff, 0xffff, 0xffff, 0xffff, 0xf99f, 0xf66f, 0xf7ef, 0xfbdf, 0xfdbf, 0xfe7f, 0xffff, 0xffff, 0xffff,
+        0x7ffe, 0x3ffc};
+
 OneWire oneWire(TEMPERATURE_PIN);
 DallasTemperature sensors(&oneWire);
 ESPRotary r;
@@ -141,7 +146,7 @@ void setupOTA() {
     int percent = (progress / (total / 100));
     Serial.printf("Progress: %u%%\r", percent);
     display.fillRect(106, 8, 24, 8, 0x00);  // bank out the current progress
-    display.fillRect(2, 2, percent, 3, SSD1306_WHITE);  // bank out the current progress
+    display.fillRect(2, 10, percent, 3, SSD1306_WHITE);  // bank out the current progress
     display.setCursor(106, 8);
     display.printf("%u%%\r", percent);
     display.display();
