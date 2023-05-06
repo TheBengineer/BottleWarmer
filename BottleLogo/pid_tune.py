@@ -19,3 +19,4 @@ for sample_time in times:
     temperatures.append(current_temperature)
 
 plt.plot(times, temperatures)
+plt.show()
