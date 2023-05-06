@@ -56,6 +56,10 @@ bool updateNTPNow = true;
 
 long buttonPressTime = 0;
 
+#define HOME 0
+#define SET_TEMP 1
+int interfaceTime = 0;
+
 static const unsigned char PROGMEM bottle_bmp[] = { 0x1, 0x80, 0x2, 0x40, 0x2, 0x40, 0x2, 0x40, 0x2, 0x40, 0x4, 0x20, 0x8, 0x10, 0x10, 0x8, 0x3f, 0xfc, 0x40, 0x2,
                                                     0x40, 0x2, 0x40, 0x2, 0x7f, 0xfe, 0x20, 0x4, 0x40, 0x2, 0x81, 0x81, 0x80, 0x1, 0x80, 0x1, 0x80, 0x1, 0x81, 0x81,
                                                     0x80, 0x1, 0x80, 0x1, 0x80, 0x1, 0x81, 0x81, 0x80, 0x1, 0x80, 0x1, 0x80, 0x1, 0x81, 0x81, 0x80, 0x1, 0x80, 0x1,
@@ -147,7 +151,6 @@ void setup(void) {
   clearText();
   display.print(F("Bottle Warmer"));
   display.display();
-  
 }
 
 void loop(void) {
@@ -252,8 +255,10 @@ void clearText() {
 void updateTemperature() {
   if (updateTemperatureNow) {
     sensors.requestTemperatures();
-    temperatureF = sensors.getTempFByIndex(0);
-    temperatureF2 = sensors.getTempFByIndex(1);
+    float t = sensors.getTempFByIndex(0);
+    temperatureF = (temperatureF * .9) + (t * .1);
+    t = sensors.getTempFByIndex(1);
+    temperatureF2 = (temperatureF2 * .9) + (t * .1);
     updateTemperatureNow = false;
   }
 }
@@ -289,6 +294,7 @@ ICACHE_RAM_ATTR void handleLoop() {
 
 // on change
 void rotate(ESPRotary& r) {
+  setPoint = r.getPosition();
   Serial.println(r.getPosition());
 }
 
@@ -302,6 +308,7 @@ String BuildSensorJson() {
   result_json["t1"] = temperatureF;
   result_json["t2"] = temperatureF2;
   result_json["set"] = setTemperature;
+  result_json["pwm"] = setPoint;
   result_json["time"] = timeClient.getFormattedTime();
 
   String message = "";
@@ -313,7 +320,7 @@ String BuildSensorJson() {
 void activateRelay() {
   if (setPoint) {
     digitalWrite(RELAY_PIN, HIGH);
-    tickerPWM.once_ms(setPoint * 10, deactivateRelay)
+    tickerPWM.once_ms(setPoint * 10, deactivateRelay);
   }
 }
 
