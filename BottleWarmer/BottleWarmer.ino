@@ -47,6 +47,7 @@ float temperatureF = 0;
 float temperatureF2 = 0;
 float setTemperature = 104;
 bool updateTemperatureNow = true;
+uint8_t setPoint = 0;
 
 
 bool updateWIFINow = false;
@@ -67,6 +68,8 @@ ESPRotary r;
 Ticker tickerTemperature;
 Ticker tickerWifi;
 Ticker tickerNTP;
+Ticker tickerPWM;
+Ticker tickerPWM2;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 WiFiUDP ntpUDP;
@@ -135,7 +138,7 @@ void setup(void) {
   attachInterrupt(digitalPinToInterrupt(ROTARY_BUTTON), buttonUp, RISING);
 
   pinMode(RELAY_PIN, OUTPUT);
-
+  tickerPWM2.attach_ms(2550, activateRelay);
 
   timeClient.begin();
   tickerNTP.attach(3600, []() {
@@ -144,6 +147,7 @@ void setup(void) {
   clearText();
   display.print(F("Bottle Warmer"));
   display.display();
+  
 }
 
 void loop(void) {
@@ -304,4 +308,15 @@ String BuildSensorJson() {
   serializeJson(result_json, message);
 
   return message;
+}
+
+void activateRelay() {
+  if (setPoint) {
+    digitalWrite(RELAY_PIN, HIGH);
+    tickerPWM.once_ms(setPoint * 10, deactivateRelay)
+  }
+}
+
+void deactivateRelay() {
+  digitalWrite(RELAY_PIN, LOW);
 }
