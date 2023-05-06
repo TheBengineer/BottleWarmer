@@ -74,6 +74,7 @@ Ticker tickerWifi;
 Ticker tickerNTP;
 Ticker tickerPWM;
 Ticker tickerPWM2;
+Ticker tickerPID;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 WiFiUDP ntpUDP;
@@ -143,6 +144,7 @@ void setup(void) {
 
   pinMode(RELAY_PIN, OUTPUT);
   tickerPWM2.attach_ms(2550, activateRelay);
+  tickerPID.attach(10, runPID);
 
   timeClient.begin();
   tickerNTP.attach(3600, []() {
@@ -317,6 +319,11 @@ String BuildSensorJson() {
   return message;
 }
 
+void runPID(){
+
+}
+
+
 void activateRelay() {
   if (setPoint) {
     digitalWrite(RELAY_PIN, HIGH);
@@ -325,5 +332,7 @@ void activateRelay() {
 }
 
 void deactivateRelay() {
-  digitalWrite(RELAY_PIN, LOW);
+  if (setPoint != 255) {
+    digitalWrite(RELAY_PIN, LOW);
+  }
 }
