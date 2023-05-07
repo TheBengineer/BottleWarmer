@@ -77,7 +77,7 @@ Ticker tickerTemperature;
 Ticker tickerWifi;
 Ticker tickerNTP;
 Ticker tickerPWM;
-Ticker tickerPWM2;
+Ticker tickerScreen;
 Ticker tickerPID;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
@@ -105,6 +105,7 @@ void setup(void) {
   display.drawBitmap(72, 16, bottle_bmp, 16, 45, SSD1306_WHITE);
   display.drawBitmap(104, 16, bottle_bmp, 16, 45, SSD1306_WHITE);
   display.display();
+  tickerScreen.attach_ms(250, updateScreen);
 
   WiFi.mode(WIFI_STA);
   WiFiManager wifiManager;
@@ -153,9 +154,8 @@ void setup(void) {
   tickerNTP.attach(3600, []() {
     updateNTPNow = true;
   });
-  clearText();
-  display.print(F("Bottle Warmer"));
-  display.display();
+  delay(1000);
+  setup_screen();
 }
 
 void loop(void) {
@@ -285,8 +285,22 @@ void updateTime() {
 void handleInterface() {
 }
 
-void updateScreen() {
+
+void setup_screen() {
   display.clearDisplay();
+  display.setCursor(0, 0);
+  display.setTextSize(2);
+  display.print("Set: ");
+  int x = display.getCursorX();
+  int y = display.getCursorY();
+  display.println(setTemperature);
+  display.println(x);
+  display.println(y);
+
+  display.display();
+}
+
+void updateScreen() {
   display.setCursor(0, 0);
   display.print(temperatureF);
   display.println("ºF");
