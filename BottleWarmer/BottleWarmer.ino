@@ -51,7 +51,7 @@ uint8_t setPoint = 0;
 float temperatureErrorAccumulator = 0;
 
 float PID_p = 10.0;
-float PID_i = .001;
+float PID_i = 0.000025;
 
 
 bool updateWIFINow = false;
@@ -308,18 +308,18 @@ void setup_screen() {
   display.print("Set: ");
   display.println(setTemperature);
   // Bottle
-  display.setTextSize(1); 
+  display.setTextSize(1);
   display.display();
 }
 
 void updateScreen() {
   if (updateScreenNow) {
-    display.setTextSize(2); 
-    display.fillRect(60,0, 78, 16, 0x00);
+    display.setTextSize(2);
+    display.fillRect(60, 0, 78, 16, 0x00);
     display.setCursor(60, 0);
     display.println(setTemperature);
-    display.fillRect(0,16, 128, 48, 0x00);
-    display.setTextSize(1); 
+    display.fillRect(0, 16, 128, 48, 0x00);
+    display.setTextSize(1);
     display.println(temperatureF);
     display.println(temperatureF2);
     display.println(setPoint);
@@ -361,8 +361,10 @@ String BuildSensorJson() {
 
 void runPID() {
   float error = setTemperature - temperatureF;
-  temperatureErrorAccumulator += error;
-  float out = PID_p * (error);
+  if (error < 10) {
+    temperatureErrorAccumulator += error;
+  }
+  float out = (PID_p * error) + (PID_i * temperatureErrorAccumulator);
   out = bound(out, 0.0, 100.0);
   setPoint = int(out);
   activateRelay();
