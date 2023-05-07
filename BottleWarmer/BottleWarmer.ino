@@ -64,6 +64,7 @@ long buttonPressTime = 0;
 #define SET_TEMP 1
 int interfaceTime = 0;
 
+
 static const unsigned char PROGMEM bottle_bmp[] = { 0x1, 0x80, 0x2, 0x40, 0x2, 0x40, 0x2, 0x40, 0x2, 0x40, 0x4, 0x20, 0x8, 0x10, 0x10, 0x8, 0x3f, 0xfc, 0x40, 0x2,
                                                     0x40, 0x2, 0x40, 0x2, 0x7f, 0xfe, 0x20, 0x4, 0x40, 0x2, 0x81, 0x81, 0x80, 0x1, 0x80, 0x1, 0x80, 0x1, 0x81, 0x81,
                                                     0x80, 0x1, 0x80, 0x1, 0x80, 0x1, 0x81, 0x81, 0x80, 0x1, 0x80, 0x1, 0x80, 0x1, 0x81, 0x81, 0x80, 0x1, 0x80, 0x1,
@@ -130,6 +131,17 @@ void setup(void) {
 
   setupOTA();
 
+  pinMode(ROTARY_BUTTON, INPUT);
+  if (digitalRead(ROTARY_BUTTON)){
+    Serial.println(F("Waiting for OTA"));
+    display.clearDisplay();
+    display.println(F("Waiting for OTA"));
+    display.display();
+    while (true){
+        ArduinoOTA.handle();
+    }
+  }
+
   setupServer();
 
   sensors.begin();
@@ -141,7 +153,7 @@ void setup(void) {
   r.setChangedHandler(rotate);
   r.setLeftRotationHandler(showDirection);
   r.setRightRotationHandler(showDirection);
-  pinMode(ROTARY_BUTTON, INPUT);
+  
   attachInterrupt(digitalPinToInterrupt(ROTARY_PIN1), handleLoop, CHANGE);
   attachInterrupt(digitalPinToInterrupt(ROTARY_PIN2), handleLoop, CHANGE);
   attachInterrupt(digitalPinToInterrupt(ROTARY_BUTTON), buttonDown, FALLING);
