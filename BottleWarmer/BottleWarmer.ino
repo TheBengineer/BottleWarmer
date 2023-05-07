@@ -322,10 +322,9 @@ String BuildSensorJson() {
 }
 
 void runPID() {
-  // set setPoint
-  float out = PID_p * (temperatureF - setTemperature);
+  float out = PID_p * (setTemperature - temperatureF);
+  out = bound(out, 0.0, 100.0);
   setPoint = int(out);
-  setPoint = boundPWM(setPoint);
   activateRelay();
 }
 
@@ -347,4 +346,11 @@ uint8_t boundPWM(uint8_t x) {
   if (x < 0) { x = 0; }
   if (x > 100) { x = 100; }
   return x;
+}
+
+// Bound the input value between x_min and x_max.
+float bound(float x, float x_min, float x_max) {
+    if (x < x_min) { x = x_min; }
+    if (x > x_max) { x = x_max; }
+    return x;
 }
