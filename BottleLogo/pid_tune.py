@@ -1,5 +1,8 @@
+from datetime import datetime
+
 import matplotlib.pyplot as plt
 import numpy as np
+import json
 
 max_time = 2 * 60 * 60  # 2 hours
 time_step = .1  # seconds
@@ -11,6 +14,17 @@ e = 2.71828
 times = np.arange(0.0, max_time, time_step)
 temperatures = []
 
+actual_temperatures = []
+actual_times = []
+starting_time = datetime.strptime("23:59:01", "%H:%M:%S")
+with open('temperature_rise.json', 'r') as f:
+    for line in f:
+        data = json.loads(line)
+        on_time = (datetime.strptime(data['time'], "%H:%M:%S") - starting_time).total_seconds()
+        if on_time < 0:
+            on_time += 24 * 60 * 60
+        actual_temperatures.append(data['t1'])
+        actual_times.append(on_time)
 
 
 def temperature(run_time):
@@ -31,4 +45,5 @@ for sample_time in times:
     temperatures.append(current_temperature)
 
 plt.plot(times, temperatures)
+plt.plot(actual_times, actual_temperatures)
 plt.show()
