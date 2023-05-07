@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import json
 
-
 max_time = 2 * 60 * 60  # 2 hours
 time_step = .1  # seconds
 starting_temperature = 65  # degrees F
@@ -16,6 +15,7 @@ times = np.arange(0.0, max_time, time_step)
 temperatures = []
 
 actual_temperatures = []
+pwm_value = []
 actual_times = []
 starting_time = datetime.strptime("23:59:01", "%H:%M:%S")
 with open('temperature_rise.json', 'r') as f:
@@ -25,6 +25,7 @@ with open('temperature_rise.json', 'r') as f:
         if on_time < 0:
             on_time += 24 * 60 * 60
         actual_temperatures.append(data['t1'])
+        pwm_value.append(data['pwm'])
         actual_times.append(on_time)
 
 
@@ -47,4 +48,5 @@ for sample_time in times:
 
 plt.plot(times, temperatures)
 plt.plot(actual_times, actual_temperatures)
+plt.plot(actual_times, pwm_value)
 plt.show()
