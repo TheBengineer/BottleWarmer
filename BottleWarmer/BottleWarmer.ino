@@ -35,7 +35,7 @@
 #define ROTARY_PIN1 14   //D5
 #define ROTARY_PIN2 12   //D6
 #define ROTARY_BUTTON 2  //D4
-#define CLICKS_PER_STEP 4
+#define CLICKS_PER_STEP 2
 
 #define RELAY_PIN 15  //D8
 
@@ -51,7 +51,7 @@ uint8_t setPoint = 0;
 float temperatureErrorAccumulator = 0;
 
 float PID_p = 10.0;
-float PID_i = 0.000025;
+float PID_i = 30.0/(15.0*500.0);
 
 
 bool updateWIFINow = false;
@@ -364,7 +364,7 @@ String BuildSensorJson() {
 
 void runPID() {
   float error = setTemperature - temperatureF;
-  if (error < 10) {
+  if (error < 15) {
     temperatureErrorAccumulator += error;
   }
   float out = (PID_p * error) + (PID_i * temperatureErrorAccumulator);
