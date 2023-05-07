@@ -57,7 +57,7 @@ temperature_derivative = np.gradient(actual_temperatures, actual_times)
 
 #plt.plot(times, temperatures)
 plt.plot(actual_times, actual_temperatures)
-plt.plot(actual_times, env_temperatures)
+#plt.plot(actual_times, env_temperatures)
 # plt.plot(actual_times, average_temperatures)
 # plt.plot(actual_times, temperature_derivative)
 # plt.plot(actual_times, pwm_value)
