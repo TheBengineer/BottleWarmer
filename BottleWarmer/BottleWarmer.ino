@@ -351,6 +351,9 @@ String BuildSensorJson() {
   result_json["t2"] = temperatureF2;
   result_json["set"] = setTemperature;
   result_json["pwm"] = setPoint;
+  result_json["p"] = PID_p;
+  result_json["i"] = PID_i;
+  result_json["acc"] = temperatureErrorAccumulator;
   result_json["time"] = timeClient.getFormattedTime();
 
   String message = "";
