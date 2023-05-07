@@ -17,6 +17,7 @@ temperatures = []
 
 actual_temperatures = []
 average_temperatures = []
+env_temperatures = []
 pwm_value = []
 actual_times = []
 starting_time = datetime.strptime("23:59:01", "%H:%M:%S")
@@ -27,6 +28,7 @@ with open('temperature_rise.json', 'r') as f:
         if on_time < 0:
             on_time += 24 * 60 * 60
         actual_temperatures.append(data['t1'])
+        env_temperatures.append(data['t2'])
         last_temperature = average_temperatures[-1] if len(average_temperatures) > 0 else data['t1']
         average_temperatures.append((last_temperature * .9) + (data['t1'] * .1))
         pwm_value.append(data['pwm'])
@@ -54,6 +56,7 @@ temperature_derivative = np.gradient(actual_temperatures, actual_times)
 
 #plt.plot(times, temperatures)
 plt.plot(actual_times, actual_temperatures)
+plt.plot(actual_times, env_temperatures)
 # plt.plot(actual_times, average_temperatures)
 # plt.plot(actual_times, temperature_derivative)
 # plt.plot(actual_times, pwm_value)
