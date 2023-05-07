@@ -48,6 +48,7 @@ float temperatureF2 = 0;
 float setTemperature = 104;
 bool updateTemperatureNow = true;
 uint8_t setPoint = 0;
+float temperatureErrorAccumulator = 0;
 
 float PID_p = 1.0;
 float PID_i = .001;
@@ -322,7 +323,9 @@ String BuildSensorJson() {
 }
 
 void runPID() {
-  float out = PID_p * (setTemperature - temperatureF);
+  float error = setTemperature - temperatureF;
+  temperatureErrorAccumulator += error;
+  float out = PID_p * (error);
   out = bound(out, 0.0, 100.0);
   setPoint = int(out);
   activateRelay();
