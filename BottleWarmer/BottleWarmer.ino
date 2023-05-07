@@ -50,7 +50,7 @@ bool updateTemperatureNow = true;
 uint8_t setPoint = 0;
 float temperatureErrorAccumulator = 0;
 
-float PID_p = 1.0;
+float PID_p = 10.0;
 float PID_i = .001;
 
 
@@ -306,24 +306,23 @@ void setup_screen() {
   display.setCursor(0, 0);
   display.setTextSize(2);
   display.print("Set: ");
-  int x = display.getCursorX();
-  int y = display.getCursorY();
   display.println(setTemperature);
-  display.println(x);
-  display.println(y);
-
+  // Bottle
+  display.setTextSize(1); 
   display.display();
 }
 
 void updateScreen() {
   if (updateScreenNow) {
-    display.setCursor(0, 0);
-    display.print(temperatureF);
-    display.println("ºF");
-    display.print(temperatureF2);
-    display.println("ºF");
-    display.println(digitalRead(ROTARY_BUTTON));
-    display.println(r.getPosition());
+    display.setTextSize(2); 
+    display.fillRect(60,0, 78, 16, 0x00);
+    display.setCursor(60, 0);
+    display.println(setTemperature);
+    display.fillRect(0,16, 128, 48, 0x00);
+    display.setTextSize(1); 
+    display.println(temperatureF);
+    display.println(temperatureF2);
+    display.println(setPoint);
     display.display();
     updateScreenNow = false;
   }
