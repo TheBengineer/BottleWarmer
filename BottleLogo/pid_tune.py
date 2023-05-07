@@ -1,8 +1,9 @@
 from datetime import datetime
-
+import scipy
 import matplotlib.pyplot as plt
 import numpy as np
 import json
+
 
 max_time = 2 * 60 * 60  # 2 hours
 time_step = .1  # seconds
