@@ -11,7 +11,7 @@ def get_temperature():
 
 
 last_write = time.time()
-with open('temperature_rise_old.json', 'a') as f:
+with open('temperature_rise.json', 'a') as f:
     while 1:
         data = get_temperature()
         if data:
