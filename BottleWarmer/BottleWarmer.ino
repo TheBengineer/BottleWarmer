@@ -261,8 +261,14 @@ void updateTemperature() {
   if (updateTemperatureNow) {
     sensors.requestTemperatures();
     float t = sensors.getTempFByIndex(0);
+    if (temperatureF == 0) {
+      temperatureF = t;
+    }
     temperatureF = (temperatureF * .9) + (t * .1);
     t = sensors.getTempFByIndex(1);
+    if (temperatureF2 == 0) {
+      temperatureF2 = t;
+    }
     temperatureF2 = (temperatureF2 * .9) + (t * .1);
     updateTemperatureNow = false;
   }
@@ -353,7 +359,7 @@ uint8_t boundPWM(uint8_t x) {
 
 // Bound the input value between x_min and x_max.
 float bound(float x, float x_min, float x_max) {
-    if (x < x_min) { x = x_min; }
-    if (x > x_max) { x = x_max; }
-    return x;
+  if (x < x_min) { x = x_min; }
+  if (x > x_max) { x = x_max; }
+  return x;
 }
