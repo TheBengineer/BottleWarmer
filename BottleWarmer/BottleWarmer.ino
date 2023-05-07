@@ -56,6 +56,7 @@ float PID_i = .001;
 
 bool updateWIFINow = false;
 bool updateNTPNow = true;
+bool updateScreenNow = true;
 
 
 long buttonPressTime = 0;
@@ -106,7 +107,9 @@ void setup(void) {
   display.drawBitmap(72, 16, bottle_bmp, 16, 45, SSD1306_WHITE);
   display.drawBitmap(104, 16, bottle_bmp, 16, 45, SSD1306_WHITE);
   display.display();
-  tickerScreen.attach_ms(250, updateScreen);
+  tickerScreen.attach_ms(250, []() {
+    updateScreenNow = true;
+  });
 
   WiFi.mode(WIFI_STA);
   WiFiManager wifiManager;
@@ -132,13 +135,13 @@ void setup(void) {
   setupOTA();
 
   pinMode(ROTARY_BUTTON, INPUT);
-  if (digitalRead(ROTARY_BUTTON)){
+  if (!digitalRead(ROTARY_BUTTON)) {
     Serial.println(F("Waiting for OTA"));
     display.clearDisplay();
     display.println(F("Waiting for OTA"));
     display.display();
-    while (true){
-        ArduinoOTA.handle();
+    while (true) {
+      ArduinoOTA.handle();
     }
   }
 
@@ -153,7 +156,7 @@ void setup(void) {
   r.setChangedHandler(rotate);
   r.setLeftRotationHandler(showDirection);
   r.setRightRotationHandler(showDirection);
-  
+
   attachInterrupt(digitalPinToInterrupt(ROTARY_PIN1), handleLoop, CHANGE);
   attachInterrupt(digitalPinToInterrupt(ROTARY_PIN2), handleLoop, CHANGE);
   attachInterrupt(digitalPinToInterrupt(ROTARY_BUTTON), buttonDown, FALLING);
@@ -176,7 +179,7 @@ void loop(void) {
   updateTemperature();
   server.handleClient();
   updateTime();
-  handleInterface();
+  updateScreen();
 }
 
 void setupOTA() {
@@ -313,14 +316,17 @@ void setup_screen() {
 }
 
 void updateScreen() {
-  display.setCursor(0, 0);
-  display.print(temperatureF);
-  display.println("ºF");
-  display.print(temperatureF2);
-  display.println("ºF");
-  display.println(digitalRead(ROTARY_BUTTON));
-  display.println(r.getPosition());
-  display.display();
+  if (updateScreenNow) {
+    display.setCursor(0, 0);
+    display.print(temperatureF);
+    display.println("ºF");
+    display.print(temperatureF2);
+    display.println("ºF");
+    display.println(digitalRead(ROTARY_BUTTON));
+    display.println(r.getPosition());
+    display.display();
+    updateScreenNow = false;
+  }
 }
 
 
