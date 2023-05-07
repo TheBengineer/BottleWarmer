@@ -50,10 +50,11 @@ for sample_time in times:
     current_temperature = temperature(sample_time)
     temperatures.append(current_temperature)
 
-# plt.plot(times, temperatures)
-# plt.plot(actual_times, actual_temperatures)
 temperature_derivative = np.gradient(actual_temperatures, actual_times)
-plt.plot(actual_times, average_temperatures)
-#plt.plot(actual_times, temperature_derivative)
+
+plt.plot(times, temperatures)
+plt.plot(actual_times, actual_temperatures)
+# plt.plot(actual_times, average_temperatures)
+# plt.plot(actual_times, temperature_derivative)
 # plt.plot(actual_times, pwm_value)
 plt.show()

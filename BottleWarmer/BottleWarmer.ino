@@ -49,6 +49,9 @@ float setTemperature = 104;
 bool updateTemperatureNow = true;
 uint8_t setPoint = 0;
 
+float PID_p = 1.0;
+float PID_i = .001;
+
 
 bool updateWIFINow = false;
 bool updateNTPNow = true;
@@ -132,7 +135,7 @@ void setup(void) {
     updateTemperatureNow = true;
   });
 
-  r.begin(ROTARY_PIN1, ROTARY_PIN2, CLICKS_PER_STEP);
+  r.begin(ROTARY_PIN1, ROTARY_PIN2, CLICKS_PER_STEP, INT16_MIN, INT16_MAX, setTemperature);
   r.setChangedHandler(rotate);
   r.setLeftRotationHandler(showDirection);
   r.setRightRotationHandler(showDirection);
@@ -143,8 +146,7 @@ void setup(void) {
   attachInterrupt(digitalPinToInterrupt(ROTARY_BUTTON), buttonUp, RISING);
 
   pinMode(RELAY_PIN, OUTPUT);
-  tickerPWM2.attach_ms(2550, activateRelay);
-  tickerPID.attach(10, runPID);
+  tickerPID.attach(1, runPID);
 
   timeClient.begin();
   tickerNTP.attach(3600, []() {
@@ -296,7 +298,7 @@ ICACHE_RAM_ATTR void handleLoop() {
 
 // on change
 void rotate(ESPRotary& r) {
-  setPoint = r.getPosition();
+  setTemperature = r.getPosition();
   Serial.println(r.getPosition());
 }
 
@@ -319,8 +321,12 @@ String BuildSensorJson() {
   return message;
 }
 
-void runPID(){
-
+void runPID() {
+  // set setPoint
+  float out = PID_p * (temperatureF - setTemperature);
+  setPoint = int(out);
+  setPoint = boundPWM(setPoint);
+  activateRelay();
 }
 
 
@@ -332,7 +338,13 @@ void activateRelay() {
 }
 
 void deactivateRelay() {
-  if (setPoint != 255) {
+  if (setPoint != 100) {
     digitalWrite(RELAY_PIN, LOW);
   }
+}
+
+uint8_t boundPWM(uint8_t x) {
+  if (x < 0) { x = 0; }
+  if (x > 100) { x = 100; }
+  return x;
 }
