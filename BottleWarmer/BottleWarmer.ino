@@ -135,15 +135,15 @@ void setup(void) {
   setupOTA();
 
   pinMode(ROTARY_BUTTON, INPUT);
-  if (!digitalRead(ROTARY_BUTTON)) {
-    Serial.println(F("Waiting for OTA"));
-    display.clearDisplay();
-    display.println(F("Waiting for OTA"));
-    display.display();
-    while (true) {
-      ArduinoOTA.handle();
-    }
-  }
+  // if (!digitalRead(ROTARY_BUTTON)) {
+  //   Serial.println(F("Waiting for OTA"));
+  //   display.clearDisplay();
+  //   display.println(F("Waiting for OTA"));
+  //   display.display();
+  //   while (true) {
+  //     ArduinoOTA.handle();
+  //   }
+  // }
 
   setupServer();
 
