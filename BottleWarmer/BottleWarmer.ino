@@ -46,12 +46,14 @@
 float temperatureF = 0;
 float temperatureF2 = 0;
 float setTemperature = 104;
+float sterilizeTemperature = 160;
+float sterilizeHour = 4; // 11PM UTC
 bool updateTemperatureNow = true;
 uint8_t setPoint = 0;
 float temperatureErrorAccumulator = 0;
 
 float PID_p = 10.0;
-float PID_i = 30.0/(15.0*500.0);
+float PID_i = 30.0 / (15.0 * 500.0);
 
 
 bool updateWIFINow = false;
@@ -63,6 +65,8 @@ long buttonPressTime = 0;
 
 #define HOME 0
 #define SET_TEMP 1
+#define SET_STERILIZE_TEMP 2
+#define SET_STERILIZE_TIME 3
 int interfaceTime = 0;
 
 
@@ -127,6 +131,7 @@ void setup(void) {
   display.print(F("With IP:"));
   display.println(WiFi.localIP());
   display.display();
+  delay(1500);
 
   tickerWifi.attach(30, []() {
     updateWIFINow = true;
@@ -187,6 +192,7 @@ void setupOTA() {
   ArduinoOTA.onStart([]() {
     Serial.println(F("OTA Start"));
     display.clearDisplay();
+    display.setTextSize(1);
     display.setCursor(0, 0);
     display.println(F("OTA Updating"));
     display.drawRect(0, 9, 104, 7, SSD1306_WHITE);
@@ -203,6 +209,7 @@ void setupOTA() {
     display.fillRect(106, 8, 24, 8, 0x00);               // bank out the current progress
     display.fillRect(2, 11, percent, 3, SSD1306_WHITE);  // bank out the current progress
     display.setCursor(106, 8);
+    display.setTextSize(1);
     display.printf("%u%%\r", percent);
     display.display();
   });
@@ -215,6 +222,8 @@ void setupOTA() {
     else if (error == OTA_RECEIVE_ERROR) msg = "Receive Failed";
     else if (error == OTA_END_ERROR) msg = "End Failed";
     Serial.println(msg);
+    display.setTextSize(1);
+    display.setCursor(0, 0);
     display.println("\n" + msg);
     display.display();
   });
@@ -222,6 +231,7 @@ void setupOTA() {
   clearText();
   display.println("OTA Ready");
   display.display();
+  delay(500);
 }
 
 void setupServer() {
@@ -304,26 +314,53 @@ void handleInterface() {
 void setup_screen() {
   display.clearDisplay();
   display.setCursor(0, 0);
-  display.setTextSize(2);
-  display.print("Set: ");
-  display.println(setTemperature);
-  // Bottle
+  display.setTextSize(1);
+  display.print("Set:");
+  display.print(setTemperature, 0);
+  display.setCursor(0, 8);
+  display.print("Hot:");
+  display.print(sterilizeTemperature, 0);
+  display.setCursor(50, 0);
+  display.print("Set:");
+  display.print(sterilizeHour, 0);
+  display.print(":00");
+  display.setCursor(50, 8);
+  display.print("Now:");
+  display.print(timeClient.getHours());
+  display.print(":");
+  display.print(timeClient.getMinutes());
+  display.drawBitmap(0, 16, bottle_bmp, 16, 45, SSD1306_WHITE);
+
+  display.setTextSize(6);
+  display.setCursor(20, 16);
+  display.println(temperatureF, 0);
+
   display.setTextSize(1);
   display.display();
 }
 
 void updateScreen() {
   if (updateScreenNow) {
-    display.setTextSize(2);
-    display.fillRect(60, 0, 78, 16, 0x00);
-    display.setCursor(60, 0);
-    display.println(setTemperature);
-    display.fillRect(0, 16, 128, 48, 0x00);
     display.setTextSize(1);
-    display.println(temperatureF);
-    display.println(temperatureF2);
-    display.println(setPoint);
+    display.fillRect(24, 0, 24, 16, 0x00); // blank set temperature, etc.
+    display.setCursor(24, 0);
+    display.println(setTemperature, 0);
+    display.setCursor(24, 8);
+    display.print(sterilizeTemperature, 0);
+    display.fillRect(74, 0, 48, 16, 0x00); // blank Times
+    display.setCursor(74, 0);
+    display.print(sterilizeHour, 0);
+    display.print(":00");
+    display.setCursor(74, 8);
+    display.print(timeClient.getHours());
+    display.print(":");
+    display.print(timeClient.getMinutes());
+    display.fillRect(20, 16, 108, 48, 0x00); // blank temperature
+    display.setCursor(20, 18);
+    display.setTextSize(6);
+    display.print(temperatureF, 0);
     display.display();
+    display.setTextSize(1);
     updateScreenNow = false;
   }
 }
@@ -337,12 +374,11 @@ ICACHE_RAM_ATTR void handleLoop() {
 // on change
 void rotate(ESPRotary& r) {
   setTemperature = r.getPosition();
-  Serial.println(r.getPosition());
+  updateScreenNow = true;
 }
 
 // on left or right rotattion
 void showDirection(ESPRotary& r) {
-  Serial.println(r.directionToString(r.getDirection()));
 }
 
 String BuildSensorJson() {
