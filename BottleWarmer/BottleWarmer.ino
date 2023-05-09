@@ -407,11 +407,11 @@ void setupScreen() {
   display.print(sterilizeTemperature, 0);
   display.setCursor(50, 1);
   display.print("Set:");
-  display.print(sterilizeHour, 0);
+  display.printf("%02d%", sterilizeHour);
   display.print(":00");
   display.setCursor(50, 9);
   display.print("Now:");
-  display.print(timeClient.getHours());
+  display.printf("%02d%", timeClient.getHours());
   display.print(":");
   display.print(timeClient.getMinutes());
   display.drawBitmap(0, 16, bottle_bmp, 16, 45, SSD1306_WHITE);
@@ -444,7 +444,7 @@ void updateScreenSterilizeTime() {
   display.setTextSize(1);
   display.fillRect(74, 1, 32, 8, 0x00);  // blank Times
   display.setCursor(74, 1);
-  display.print(sterilizeHour, 0);
+  display.printf("%02d%", sterilizeHour);
   display.print(":00");
   display.display();
 }
@@ -453,9 +453,9 @@ void updateScreenTimeNow() {
   display.setTextSize(1);
   display.fillRect(74, 9, 32, 8, 0x00);  // blank Times
   display.setCursor(74, 9);
-  display.print(timeClient.getHours());
+  display.printf("%02d%", timeClient.getHours());
   display.print(":");
-  display.print(timeClient.getMinutes());
+  display.printf("%02d%", timeClient.getMinutes());
   display.display();
 }
 
@@ -547,6 +547,7 @@ void runPID() {
   if (error < 15) {
     temperatureErrorAccumulator += error;
   }
+  bound(temperatureErrorAccumulator, 0, 20000);
   float out = (PID_p * error) + (PID_i * temperatureErrorAccumulator);
   out = bound(out, 0.0, 100.0);
   setPoint = int(out);
