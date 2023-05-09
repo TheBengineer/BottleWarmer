@@ -8,14 +8,16 @@ void setupScreen() {
   display.print("Hot:");
   display.print(sterilizeTemperature, 0);
   display.setCursor(50, 1);
+  //char timestring[9];
+  //sprintf(timestring, "Set:%2d:%2d")
   display.print("Set:");
-  display.printf("%02d%", sterilizeHour);
+  display.printf("%02d", sterilizeHour);
   display.print(":00");
   display.setCursor(50, 9);
   display.print("Now:");
-  display.printf("%02d%", timeClient.getHours());
+  display.printf("%02d", timeClient.getHours());
   display.print(":");
-  display.print(timeClient.getMinutes());
+  display.printf("%02d", timeClient.getMinutes());
   display.drawBitmap(0, 16, bottle_bmp, 16, 45, SSD1306_WHITE);
 
   display.setTextSize(6);
@@ -46,7 +48,7 @@ void updateScreenSterilizeTime() {
   display.setTextSize(1);
   display.fillRect(74, 1, 32, 8, 0x00);  // blank Times
   display.setCursor(74, 1);
-  display.printf("%02d%", sterilizeHour);
+  display.printf("%02d", sterilizeHour);
   display.print(":00");
   display.display();
 }
@@ -55,9 +57,9 @@ void updateScreenTimeNow() {
   display.setTextSize(1);
   display.fillRect(74, 9, 32, 8, 0x00);  // blank Times
   display.setCursor(74, 9);
-  display.printf("%02d%", timeClient.getHours());
+  display.printf("%02d", timeClient.getHours());
   display.print(":");
-  display.printf("%02d%", timeClient.getMinutes());
+  display.printf("%02d", timeClient.getMinutes());
   display.display();
 }
 
@@ -107,7 +109,7 @@ void updateGUISetSterilizeTime() {
   display.fillRect(21, 49, 58, 14, 0x00);
   display.setTextSize(2);
   display.setCursor(82, 49);
-  display.printf("%02d%", sterilizeHour);
+  display.printf("%02d", sterilizeHour);
   display.print(":00");
   display.display();
   display.setTextSize(1);
