@@ -54,14 +54,17 @@ void handleInterface() {
         break;
       case SET_TEMP:
         EEPROM.put(0, setTemperature);
+        EEPROM.commit();
         cleanup();
         break;
       case SET_STERILIZE_TEMP:
         EEPROM.put(1, sterilizeTemperature);
+        EEPROM.commit();
         cleanup();
         break;
       case SET_STERILIZE_TIME:
         EEPROM.put(2, sterilizeHour);
+        EEPROM.commit();
         cleanup();
         break;
       case CLEANUP:

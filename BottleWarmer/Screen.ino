@@ -3,13 +3,13 @@ void setupScreen() {
   display.setCursor(1, 1);
   display.setTextSize(1);
   display.print("Set:");
-  display.print(setTemperature, 0);
+  display.print(float(setTemperature), 0);
   display.setCursor(1, 9);
   display.print("Hot:");
-  display.print(sterilizeTemperature, 0);
+  display.print(float(sterilizeTemperature), 0);
   display.setCursor(50, 1);
   display.print("Set:");
-  display.printf("%02d", sterilizeHour);
+  display.printf("%02d", float(sterilizeHour));
   display.print(":00");
   display.setCursor(50, 9);
   display.print("Now:");
@@ -30,7 +30,7 @@ void updateScreenSetTemp() {
   display.setTextSize(1);
   display.fillRect(24, 1, 24, 8, 0x00);  // blank set temperature
   display.setCursor(24, 1);
-  display.print(setTemperature, 0);
+  display.print(float(setTemperature), 0);
   display.display();
 }
 
@@ -38,7 +38,7 @@ void updateScreenSterilizeTemp() {
   display.setTextSize(1);
   display.fillRect(24, 9, 24, 8, 0x00);  // blank set temperature
   display.setCursor(24, 9);
-  display.print(sterilizeTemperature, 0);
+  display.print(float(sterilizeTemperature), 0);
   display.display();
 }
 
@@ -46,7 +46,7 @@ void updateScreenSterilizeTime() {
   display.setTextSize(1);
   display.fillRect(74, 1, 32, 8, 0x00);  // blank Times
   display.setCursor(74, 1);
-  display.printf("%02d", sterilizeHour);
+  display.printf("%02d", float(sterilizeHour));
   display.print(":00");
   display.display();
 }

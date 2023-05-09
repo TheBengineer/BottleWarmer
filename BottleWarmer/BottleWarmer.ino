@@ -213,6 +213,7 @@ void initEEPROM(){
     } else{
       sterilizeHour = s;
     }
+    EEPROM.commit();
 }
 
 void setupOTA() {
