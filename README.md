@@ -1,5 +1,41 @@
 # Bottle Warmer
-## A hacked Crockpot for keeping water warm for bottle feeding
+## A Crockpot hacked to keep bottles warm
+
+This project started one night when I was trying to warm up
+some water, so I could make formula, while holding a crying baby.
+
+"Things would be so much easier if the bottles were already up to temperature" I thought.
+
+And then I was buying parts one-handed on Amazon while feeding with the other.
+
+## Features
+* Accurate Temperature control ±1 degree Fahrenheit
+* Programmable Heat cycle to periodically sterilize the water
+* Wifi enabled to allow time sync over NTP
+  * Also allows for remote monitoring and over the air updates
+  ![OTA Update](https://github.com/TheBengineer/BottleWarmer/blob/main/github/images/OTA%20update.jpg?raw=true)
+  * TODO - Add control over http
+* OLED Screen to display current temperature
+* Rotary encoder to set temperature and cycle time
+* EEPROM to maintain settings across power cycles
+
+## Parts List
+1) [Crockpot](https://www.amazon.com/Crock-Pot-SCV700SS-Stainless-7-Quart-Manual/dp/B003OAJGJO)
+2) [esp8266](https://www.amazon.com/HiLetgo-Internet-Development-Wireless-Micropython/dp/B081CSJV2V)
+3) [Solid State Relay](https://www.amazon.com/gp/product/B079BGBCF4)
+8) [I2C Oled Screen](https://www.amazon.com/dp/B09C5K91H7)
+4) [Temperature Probes](https://www.amazon.com/gp/product/B09NVFJYPS)
+5) [Encoder With Button](https://www.amazon.com/dp/B07T3672VK)
+5) [USB Charger](https://www.amazon.com/Charger-iPhone-Travel-Adapter-Samsung/dp/B0995MV494)
+6) [Breadboard](https://www.amazon.com/Gikfun-Solder-able-Breadboard-Plated-Arduino/dp/B071R3BFNL)
+7) [Jumper Wires](https://www.amazon.com/EDGELEC-Breadboard-Optional-Assorted-Multicolored/dp/B07GD2BWPY)
+
+All in all, this project cost me about $100, and once it's no longer needed
+as a bottle warmer, I'll have an accurate 
+temperature controlled crockpot that functions as a sois vide.
+
+
+
 
 
 
