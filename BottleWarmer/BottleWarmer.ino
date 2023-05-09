@@ -35,7 +35,7 @@
 #define ROTARY_PIN1 14   //D5
 #define ROTARY_PIN2 12   //D6
 #define ROTARY_BUTTON 2  //D4
-#define CLICKS_PER_STEP 2
+#define CLICKS_PER_STEP 4
 
 #define RELAY_PIN 15  //D8
 
@@ -321,12 +321,15 @@ void handleInterface() {
     switch (interfaceState) {
       case SET_TEMP:
         setTemperature = r.getPosition();
+        updateScreenTemperature();
         break;
       case SET_STERILIZE_TEMP:
         sterilizeTemperature = r.getPosition();
+        updateScreenSterilizeTemp();
         break;
       case SET_STERILIZE_TIME:
         sterilizeHour = r.getPosition();
+        updateScreenSterilizeTime();
         break;
       case SET_VARIABLE:
         updateSelection();
@@ -339,10 +342,14 @@ void handleInterface() {
   }
 
   if (shortPress) {
+    shortPress = false;
     int p = r.getPosition();
     switch (interfaceState) {
       case HOME:
         interfaceState = SET_VARIABLE;
+        display.drawCircle(120, 8, 7, SSD1306_WHITE);
+        display.drawLine(120, 1, 120, 6, SSD1306_WHITE);
+        display.display();
         r.resetPosition(1);
         break;
       case SET_VARIABLE:
@@ -361,6 +368,8 @@ void handleInterface() {
             break;
         }
         interfaceState = p;
+        display.drawCircle(120, 8, 3, SSD1306_WHITE);
+        display.display();
         break;
       case SET_TEMP:
         // EEPROM save
@@ -378,28 +387,32 @@ void handleInterface() {
         shortPress = true;
         break;
       case CLEANUP:
+      default:
+        display.drawCircle(120, 8, 7, 0x00);
+        display.drawCircle(120, 8, 3, 0x00);
+        display.drawLine(120, 1, 120, 6, 0x00);
         updateSelection();
+        interfaceState = HOME;
         break;
     }
-    shortPress = false;
   }
 }
 
 
 void setupScreen() {
   display.clearDisplay();
-  display.setCursor(0, 0);
+  display.setCursor(1, 1);
   display.setTextSize(1);
   display.print("Set:");
   display.print(setTemperature, 0);
-  display.setCursor(0, 8);
+  display.setCursor(1, 9);
   display.print("Hot:");
   display.print(sterilizeTemperature, 0);
-  display.setCursor(50, 0);
+  display.setCursor(50, 1);
   display.print("Set:");
   display.print(sterilizeHour, 0);
   display.print(":00");
-  display.setCursor(50, 8);
+  display.setCursor(50, 9);
   display.print("Now:");
   display.print(timeClient.getHours());
   display.print(":");
@@ -416,24 +429,24 @@ void setupScreen() {
 
 void updateScreenSetTemp() {
   display.setTextSize(1);
-  display.fillRect(24, 0, 24, 8, 0x00);  // blank set temperature
-  display.setCursor(24, 0);
+  display.fillRect(24, 1, 24, 8, 0x00);  // blank set temperature
+  display.setCursor(24, 1);
   display.print(setTemperature, 0);
   display.display();
 }
 
 void updateScreenSterilizeTemp() {
   display.setTextSize(1);
-  display.fillRect(24, 8, 24, 8, 0x00);  // blank set temperature
-  display.setCursor(24, 8);
+  display.fillRect(24, 9, 24, 8, 0x00);  // blank set temperature
+  display.setCursor(24, 9);
   display.print(sterilizeTemperature, 0);
   display.display();
 }
 
 void updateScreenSterilizeTime() {
   display.setTextSize(1);
-  display.fillRect(74, 0, 48, 8, 0x00);  // blank Times
-  display.setCursor(74, 0);
+  display.fillRect(74, 1, 32, 8, 0x00);  // blank Times
+  display.setCursor(74, 1);
   display.print(sterilizeHour, 0);
   display.print(":00");
   display.display();
@@ -441,8 +454,8 @@ void updateScreenSterilizeTime() {
 
 void updateScreenTimeNow() {
   display.setTextSize(1);
-  display.fillRect(74, 8, 48, 8, 0x00);  // blank Times
-  display.setCursor(74, 8);
+  display.fillRect(74, 9, 32, 8, 0x00);  // blank Times
+  display.setCursor(74, 9);
   display.print(timeClient.getHours());
   display.print(":");
   display.print(timeClient.getMinutes());
@@ -461,8 +474,7 @@ void updateScreenTemperature() {
 void clearSelection() {
   display.drawRect(0, 0, 24, 9, 0x00);
   display.drawRect(0, 8, 24, 9, 0x00);
-  display.drawRect(50, 0, 24, 9, 0x00);
-  //SSD1306_WHITE
+  display.drawRect(49, 0, 24, 9, 0x00);
 }
 
 void updateSelection() {
@@ -477,10 +489,11 @@ void updateSelection() {
         display.drawRect(0, 8, 24, 9, SSD1306_WHITE);
         break;
       case SET_STERILIZE_TIME:
-        display.drawRect(50, 0, 24, 9, SSD1306_WHITE);
+        display.drawRect(49, 0, 24, 9, SSD1306_WHITE);
         break;
     }
   }
+  display.display();
 }
 
 void updateScreen() {
@@ -512,6 +525,8 @@ String BuildSensorJson() {
   result_json["t1"] = temperatureF;
   result_json["t2"] = temperatureF2;
   result_json["set"] = setTemperature;
+  result_json["hot"] = sterilizeTemperature;
+  result_json["st_h"] = sterilizeHour;
   result_json["pwm"] = setPoint;
   result_json["p"] = PID_p;
   result_json["i"] = PID_i;
