@@ -156,7 +156,7 @@ void setup(void) {
   //   }
   // }
   initEEPROM();
-  
+
   setupServer();
 
   sensors.begin();
@@ -193,27 +193,28 @@ void loop(void) {
   handleInterface();
 }
 
-void initEEPROM(){
-    EEPROM.begin(3);
-    uint8_t s = EEPROM.read(0);
-    if (s == 255){
-      EEPROM.put(0, setTemperature);
-    } else{
-      setTemperature = s;
-    }
-    s = EEPROM.read(1);
-    if (s == 255){
-      EEPROM.put(1, sterilizeTemperature);
-    } else {
-      sterilizeTemperature = s;
-    }
-    s = EEPROM.read(2);
-    if (s == 255){
-      EEPROM.put(2, sterilizeHour);
-    } else{
-      sterilizeHour = s;
-    }
-    EEPROM.commit();
+void initEEPROM() {
+  EEPROM.begin(3);
+  uint8_t s = 0;
+  EEPROM.get(0, s);
+  if (s == 255) {
+    EEPROM.put(0, setTemperature);
+  } else {
+    setTemperature = s;
+  }
+  EEPROM.get(1, s);
+  if (s == 255) {
+    EEPROM.put(1, sterilizeTemperature);
+  } else {
+    sterilizeTemperature = s;
+  }
+  EEPROM.get(2, s);
+  if (s == 255) {
+    EEPROM.put(2, sterilizeHour);
+  } else {
+    sterilizeHour = s;
+  }
+  EEPROM.commit();
 }
 
 void setupOTA() {
