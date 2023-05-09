@@ -25,6 +25,7 @@
 #include <NTPClient.h>
 #include "Ticker.h"
 #include <ArduinoJson.h>
+#include <EEPROM.h>
 
 #define SCREEN_SDA 4
 #define SCREEN_SCL 5
@@ -45,9 +46,9 @@
 
 float temperatureF = 0;
 float temperatureF2 = 0;
-float setTemperature = 104;
-float sterilizeTemperature = 160;
-float sterilizeHour = 4;  // 11PM UTC
+uint8_t setTemperature = 104;
+uint8_t sterilizeTemperature = 160;
+uint8_t sterilizeHour = 4;  // 11PM UTC
 bool updateTemperatureNow = true;
 uint8_t setPoint = 0;
 float temperatureErrorAccumulator = 0;
@@ -154,7 +155,8 @@ void setup(void) {
   //     ArduinoOTA.handle();
   //   }
   // }
-
+  initEEPROM();
+  
   setupServer();
 
   sensors.begin();
@@ -189,6 +191,28 @@ void loop(void) {
   updateTime();
   updateScreen();
   handleInterface();
+}
+
+void initEEPROM(){
+    EEPROM.begin(3);
+    uint8_t s = EEPROM.read(0);
+    if (s == 255){
+      EEPROM.put(0, setTemperature);
+    } else{
+      setTemperature = s
+    }
+    s = EEPROM.read(1);
+    if (s == 255){
+      EEPROM.put(1, sterilizeTemperature);
+    } else {
+      sterilizeTemperature = s
+    }
+    s = EEPROM.read(2);
+    if (s == 255){
+      EEPROM.put(2, sterilizeHour);
+    } else{
+      sterilizeHour = s
+    }
 }
 
 void setupOTA() {

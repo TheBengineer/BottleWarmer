@@ -107,8 +107,7 @@ void updateGUISetSterilizeTime() {
   display.fillRect(82, 49, 58, 14, 0x00);
   display.setTextSize(2);
   display.setCursor(82, 49);
-  display.printf("%02d", float(sterilizeHour));
-  display.print(":00");
+  display.print(float(sterilizeHour), 0);
   display.display();
   display.setTextSize(1);
 }

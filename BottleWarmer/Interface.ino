@@ -53,15 +53,15 @@ void handleInterface() {
         interfaceState = p;
         break;
       case SET_TEMP:
-        // EEPROM save
+        EEPROM.put(0, setTemperature);
         cleanup();
         break;
       case SET_STERILIZE_TEMP:
-        // EEPROM save
+        EEPROM.put(1, sterilizeTemperature);
         cleanup();
         break;
       case SET_STERILIZE_TIME:
-        // EEPROM save
+        EEPROM.put(2, sterilizeHour);
         cleanup();
         break;
       case CLEANUP:
