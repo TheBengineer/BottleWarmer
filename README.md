@@ -13,11 +13,21 @@ And then I was buying parts one-handed on Amazon while feeding with the other.
 * Programmable Heat cycle to periodically sterilize the water
 * Wifi enabled to allow time sync over NTP
   * Also allows for remote monitoring and over the air updates
-  ![OTA Update](https://github.com/TheBengineer/BottleWarmer/blob/main/github/images/OTA%20update.jpg?raw=true)
   * TODO - Add control over http
 * OLED Screen to display current temperature
 * Rotary encoder to set temperature and cycle time
 * EEPROM to maintain settings across power cycles
+
+## Screenshots
+### Boot screen with Wi-Fi info
+<img src="https://github.com/TheBengineer/BottleWarmer/blob/main/github/images/Splash.jpg?raw=true"  width="70%"></img>
+### Main screen shows current temperature and settings
+<img src="https://github.com/TheBengineer/BottleWarmer/blob/main/github/images/interface.jpg?raw=true"  width="70%"></img>
+### Configuration screen
+<img src="https://github.com/TheBengineer/BottleWarmer/blob/main/github/images/settings.jpg?raw=true"  width="70%"></img>
+### Over the air update progress screen
+<img src="https://github.com/TheBengineer/BottleWarmer/blob/main/github/images/OTA%20update.jpg?raw=true"  width="70%"></img>
+
 
 ## Parts List
 1) [Crockpot](https://www.amazon.com/Crock-Pot-SCV700SS-Stainless-7-Quart-Manual/dp/B003OAJGJO)
