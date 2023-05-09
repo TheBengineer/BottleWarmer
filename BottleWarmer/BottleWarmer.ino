@@ -47,7 +47,7 @@ float temperatureF = 0;
 float temperatureF2 = 0;
 float setTemperature = 104;
 float sterilizeTemperature = 160;
-float sterilizeHour = 4; // 11PM UTC
+float sterilizeHour = 4;  // 11PM UTC
 bool updateTemperatureNow = true;
 uint8_t setPoint = 0;
 float temperatureErrorAccumulator = 0;
@@ -64,10 +64,12 @@ bool updateScreenNow = true;
 long buttonPressTime = 0;
 
 #define HOME 0
+#define SET_VARIABLE 10
 #define SET_TEMP 1
 #define SET_STERILIZE_TEMP 2
 #define SET_STERILIZE_TIME 3
 int interfaceTime = 0;
+int interfaceState = HOME;
 
 
 static const unsigned char PROGMEM bottle_bmp[] = { 0x1, 0x80, 0x2, 0x40, 0x2, 0x40, 0x2, 0x40, 0x2, 0x40, 0x4, 0x20, 0x8, 0x10, 0x10, 0x8, 0x3f, 0xfc, 0x40, 0x2,
@@ -266,7 +268,46 @@ void reconnect_wifi() {  //function to reconnect wifi if its not connected
   }
 }
 
-ICACHE_RAM_ATTR void buttonUp() {}
+ICACHE_RAM_ATTR void buttonUp() {
+  if (millis() - buttonPressTime > 10) {
+    switch (interfaceState) {
+      case HOME:
+        interfaceState = SET_VARIABLE;
+        r.resetPosition(0);
+        break;
+      case SET_VARIABLE:
+        int p = r.getPosition();
+        switch (p) {
+          case SET_TEMP:
+            r.resetPosition(int(setTemperature));
+            break;
+          case SET_STERILIZE_TEMP:
+            r.resetPosition(int(sterilizeTemperature));
+            break;
+          case SET_STERILIZE_TIME:
+            r.resetPosition(int(sterilizeHour));
+            break;
+        }
+        interfaceState = p;
+        break;
+      case SET_TEMP:
+        setTemperature = r.getPosition();
+        // EEPROM save
+        interfaceState = HOME;
+        break;
+      case SET_STERILIZE_TEMP:
+        sterilizeTemperature = r.getPosition();
+        // EEPROM save
+        interfaceState = HOME;
+        break;
+      case SET_STERILIZE_TIME:
+        sterilizeHour = r.getPosition();
+        // EEPROM save
+        interfaceState = HOME;
+        break;
+    }
+  }
+}
 
 ICACHE_RAM_ATTR void buttonDown() {
   buttonPressTime = millis();
@@ -339,28 +380,60 @@ void setup_screen() {
   display.display();
 }
 
+void updateScreenSetTemp() {
+  display.setTextSize(1);
+  display.fillRect(24, 0, 24, 8, 0x00);  // blank set temperature
+  display.setCursor(24, 0);
+  display.print(setTemperature, 0);
+  display.display();
+}
+
+void updateScreenSterilizeTemp() {
+  display.setTextSize(1);
+  display.fillRect(24, 8, 24, 8, 0x00);  // blank set temperature
+  display.setCursor(24, 8);
+  display.print(sterilizeTemperature, 0);
+  display.display();
+}
+
+void updateScreenSterilizeTime() {
+  display.setTextSize(1);
+  display.fillRect(74, 0, 48, 8, 0x00);  // blank Times
+  display.setCursor(74, 0);
+  display.print(sterilizeHour, 0);
+  display.print(":00");
+  display.display();
+}
+
+void updateScreenTimeNow() {
+  display.setTextSize(1);
+  display.fillRect(74, 8, 48, 8, 0x00);  // blank Times
+  display.setCursor(74, 8);
+  display.print(timeClient.getHours());
+  display.print(":");
+  display.print(timeClient.getMinutes());
+  display.display();
+}
+
+void updateScreenTemperature() {
+  display.fillRect(20, 16, 108, 48, 0x00);  // blank temperature
+  display.setCursor(20, 18);
+  display.setTextSize(6);
+  display.print(temperatureF, 0);
+  display.display();
+  display.setTextSize(1);
+}
+
+
 void updateScreen() {
   if (updateScreenNow) {
-    display.setTextSize(1);
-    display.fillRect(24, 0, 24, 16, 0x00); // blank set temperature, etc.
-    display.setCursor(24, 0);
-    display.println(setTemperature, 0);
-    display.setCursor(24, 8);
-    display.print(sterilizeTemperature, 0);
-    display.fillRect(74, 0, 48, 16, 0x00); // blank Times
-    display.setCursor(74, 0);
-    display.print(sterilizeHour, 0);
-    display.print(":00");
-    display.setCursor(74, 8);
-    display.print(timeClient.getHours());
-    display.print(":");
-    display.print(timeClient.getMinutes());
-    display.fillRect(20, 16, 108, 48, 0x00); // blank temperature
-    display.setCursor(20, 18);
-    display.setTextSize(6);
-    display.print(temperatureF, 0);
-    display.display();
-    display.setTextSize(1);
+    updateScreenSetTemp();
+    updateScreenSterilizeTemp();
+    updateScreenSterilizeTime();
+    updateScreenSterilizeTime();
+    updateScreenTimeNow();
+    updateScreenTemperature();
+
     updateScreenNow = false;
   }
 }
