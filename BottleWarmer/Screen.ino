@@ -8,8 +8,6 @@ void setupScreen() {
   display.print("Hot:");
   display.print(sterilizeTemperature, 0);
   display.setCursor(50, 1);
-  //char timestring[9];
-  //sprintf(timestring, "Set:%2d:%2d")
   display.print("Set:");
   display.printf("%02d", sterilizeHour);
   display.print(":00");
@@ -89,27 +87,27 @@ void setupGUI() {
 }
 
 void updateGUISetTemperature() {
-  display.fillRect(21, 17, 58, 14, 0x00);
+  display.fillRect(82, 17, 58, 14, 0x00);
   display.setTextSize(2);
   display.setCursor(82, 17);
-  display.print(setPoint, 0);
+  display.print(float(setPoint), 0);
   display.display();
   display.setTextSize(1);
 }
 
 void updateGUISetSterilizeTemp() {
-  display.fillRect(21, 33, 58, 14, 0x00);
+  display.fillRect(82, 33, 58, 14, 0x00);
   display.setTextSize(2);
   display.setCursor(82, 33);
-  display.print(sterilizeTemperature, 0);
+  display.print(float(sterilizeTemperature), 0);
   display.display();
   display.setTextSize(1);
 }
 void updateGUISetSterilizeTime() {
-  display.fillRect(21, 49, 58, 14, 0x00);
+  display.fillRect(82, 49, 58, 14, 0x00);
   display.setTextSize(2);
   display.setCursor(82, 49);
-  display.printf("%02d", sterilizeHour);
+  display.printf("%02d", float(sterilizeHour));
   display.print(":00");
   display.display();
   display.setTextSize(1);
