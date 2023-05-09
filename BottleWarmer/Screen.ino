@@ -9,7 +9,10 @@ void setupScreen() {
   display.print(float(sterilizeTemperature), 0);
   display.setCursor(50, 1);
   display.print("Set:");
-  display.printf("%02d", float(sterilizeHour));
+  if (sterilizeHour < 10) {
+    display.print("0");
+  }
+  display.print(float(sterilizeHour), 0);
   display.print(":00");
   display.setCursor(50, 9);
   display.print("Now:");
@@ -46,7 +49,10 @@ void updateScreenSterilizeTime() {
   display.setTextSize(1);
   display.fillRect(74, 1, 32, 8, 0x00);  // blank Times
   display.setCursor(74, 1);
-  display.printf("%02d", float(sterilizeHour));
+  if (sterilizeHour < 10) {
+    display.print("0");
+  }
+  display.print(float(sterilizeHour), 0);
   display.print(":00");
   display.display();
 }
@@ -107,6 +113,9 @@ void updateGUISetSterilizeTime() {
   display.fillRect(82, 49, 58, 14, 0x00);
   display.setTextSize(2);
   display.setCursor(82, 49);
+    if (sterilizeHour < 10) {
+    display.print("0");
+  }
   display.print(float(sterilizeHour), 0);
   display.display();
   display.setTextSize(1);
