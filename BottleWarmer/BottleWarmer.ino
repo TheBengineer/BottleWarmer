@@ -334,9 +334,6 @@ void handleInterface() {
       case SET_VARIABLE:
         updateSelection();
         break;
-      default:
-        updateScreenNow = true;
-        break;
     }
     updateInterface = false;
   }
@@ -504,7 +501,7 @@ void updateScreen() {
     updateScreenSterilizeTime();
     updateScreenTimeNow();
     updateScreenTemperature();
-
+    updateInterface = true;
     updateScreenNow = false;
   }
 }
