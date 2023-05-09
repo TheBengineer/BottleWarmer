@@ -70,6 +70,7 @@ bool updateInterface = false;
 #define SET_TEMP 1
 #define SET_STERILIZE_TEMP 2
 #define SET_STERILIZE_TIME 3
+#define CLEANUP 11
 int interfaceTime = 0;
 int interfaceState = HOME;
 
@@ -314,6 +315,7 @@ void updateTime() {
   }
 }
 
+
 void handleInterface() {
   if (updateInterface) {
     switch (interfaceState) {
@@ -325,6 +327,9 @@ void handleInterface() {
         break;
       case SET_STERILIZE_TIME:
         sterilizeHour = r.getPosition();
+        break;
+      case SET_VARIABLE:
+        updateSelection();
         break;
       default:
         updateScreenNow = true;
@@ -338,7 +343,7 @@ void handleInterface() {
     switch (interfaceState) {
       case HOME:
         interfaceState = SET_VARIABLE;
-        r.resetPosition(0);
+        r.resetPosition(1);
         break;
       case SET_VARIABLE:
         switch (p) {
@@ -351,20 +356,29 @@ void handleInterface() {
           case SET_STERILIZE_TIME:
             r.resetPosition(int(sterilizeHour));
             break;
+          default:
+            interfaceState = CLEANUP;
+            break;
         }
         interfaceState = p;
         break;
       case SET_TEMP:
         // EEPROM save
-        interfaceState = HOME;
+        interfaceState = CLEANUP;
+        shortPress = true;
         break;
       case SET_STERILIZE_TEMP:
         // EEPROM save
-        interfaceState = HOME;
+        interfaceState = CLEANUP;
+        shortPress = true;
         break;
       case SET_STERILIZE_TIME:
         // EEPROM save
-        interfaceState = HOME;
+        interfaceState = CLEANUP;
+        shortPress = true;
+        break;
+      case CLEANUP:
+        updateSelection();
         break;
     }
     shortPress = false;
@@ -444,6 +458,30 @@ void updateScreenTemperature() {
   display.setTextSize(1);
 }
 
+void clearSelection() {
+  display.drawRect(0, 0, 24, 9, 0x00);
+  display.drawRect(0, 8, 24, 9, 0x00);
+  display.drawRect(50, 0, 24, 9, 0x00);
+  //SSD1306_WHITE
+}
+
+void updateSelection() {
+  int p = r.getPosition();
+  clearSelection();
+  if (interfaceState == SET_VARIABLE) {
+    switch (p) {
+      case SET_TEMP:
+        display.drawRect(0, 0, 24, 9, SSD1306_WHITE);
+        break;
+      case SET_STERILIZE_TEMP:
+        display.drawRect(0, 8, 24, 9, SSD1306_WHITE);
+        break;
+      case SET_STERILIZE_TIME:
+        display.drawRect(50, 0, 24, 9, SSD1306_WHITE);
+        break;
+    }
+  }
+}
 
 void updateScreen() {
   if (updateScreenNow) {
