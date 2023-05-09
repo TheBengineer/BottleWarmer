@@ -1,4 +1,5 @@
 # Bottle Warmer
+
 ## A Crockpot hacked to keep bottles warm
 
 This project started one night when I was trying to warm up
@@ -8,17 +9,23 @@ some water, so I could make formula, while holding a crying baby.
 
 And then I was buying parts one-handed on Amazon while feeding with the other.
 
+## Project Structure
+### [Arduino Sketch](BottleWarmer/BottleWarmer.ino)
+### [Python for monitoring and logo generation](BottleLogo)
+
 ## Features
+
 * Accurate Temperature control ±1 degree Fahrenheit
 * Programmable Heat cycle to periodically sterilize the water
 * Wifi enabled to allow time sync over NTP
-  * Also allows for remote monitoring and over the air updates
-  * TODO - Add control over http
+    * Also allows for remote monitoring and over the air updates
+    * TODO - Add control over http
 * OLED Screen to display current temperature
 * Rotary encoder to set temperature and cycle time
 * EEPROM to maintain settings across power cycles
 
 ## Screenshots
+
 ### Boot screen with Wi-Fi info
 <img src="https://github.com/TheBengineer/BottleWarmer/blob/main/github/images/Splash.jpg?raw=true"  width="70%"></img>
 ### Main screen shows current temperature and settings
@@ -41,7 +48,7 @@ And then I was buying parts one-handed on Amazon while feeding with the other.
 7) [Jumper Wires](https://www.amazon.com/EDGELEC-Breadboard-Optional-Assorted-Multicolored/dp/B07GD2BWPY)
 
 All in all, this project cost me about $100, and once it's no longer needed
-as a bottle warmer, I'll have an accurate 
+as a bottle warmer, I'll have an accurate
 temperature controlled crockpot that functions as a sois vide.
 
 
