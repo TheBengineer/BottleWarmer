@@ -199,19 +199,19 @@ void initEEPROM(){
     if (s == 255){
       EEPROM.put(0, setTemperature);
     } else{
-      setTemperature = s
+      setTemperature = s;
     }
     s = EEPROM.read(1);
     if (s == 255){
       EEPROM.put(1, sterilizeTemperature);
     } else {
-      sterilizeTemperature = s
+      sterilizeTemperature = s;
     }
     s = EEPROM.read(2);
     if (s == 255){
       EEPROM.put(2, sterilizeHour);
     } else{
-      sterilizeHour = s
+      sterilizeHour = s;
     }
 }
 
