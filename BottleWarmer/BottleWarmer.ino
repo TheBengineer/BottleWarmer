@@ -62,6 +62,8 @@ bool updateScreenNow = true;
 
 
 long buttonPressTime = 0;
+bool shortPress = false;
+bool updateInterface = false;
 
 #define HOME 0
 #define SET_VARIABLE 10
@@ -161,8 +163,6 @@ void setup(void) {
 
   r.begin(ROTARY_PIN1, ROTARY_PIN2, CLICKS_PER_STEP, INT16_MIN, INT16_MAX, setTemperature);
   r.setChangedHandler(rotate);
-  r.setLeftRotationHandler(showDirection);
-  r.setRightRotationHandler(showDirection);
 
   attachInterrupt(digitalPinToInterrupt(ROTARY_PIN1), handleLoop, CHANGE);
   attachInterrupt(digitalPinToInterrupt(ROTARY_PIN2), handleLoop, CHANGE);
@@ -177,7 +177,7 @@ void setup(void) {
     updateNTPNow = true;
   });
   delay(1000);
-  setup_screen();
+  setupScreen();
 }
 
 void loop(void) {
@@ -186,6 +186,7 @@ void loop(void) {
   updateTemperature();
   server.handleClient();
   updateTime();
+  handleInterface();
   updateScreen();
 }
 
@@ -270,42 +271,7 @@ void reconnect_wifi() {  //function to reconnect wifi if its not connected
 
 ICACHE_RAM_ATTR void buttonUp() {
   if (millis() - buttonPressTime > 10) {
-    switch (interfaceState) {
-      case HOME:
-        interfaceState = SET_VARIABLE;
-        r.resetPosition(0);
-        break;
-      case SET_VARIABLE:
-        int p = r.getPosition();
-        switch (p) {
-          case SET_TEMP:
-            r.resetPosition(int(setTemperature));
-            break;
-          case SET_STERILIZE_TEMP:
-            r.resetPosition(int(sterilizeTemperature));
-            break;
-          case SET_STERILIZE_TIME:
-            r.resetPosition(int(sterilizeHour));
-            break;
-        }
-        interfaceState = p;
-        break;
-      case SET_TEMP:
-        setTemperature = r.getPosition();
-        // EEPROM save
-        interfaceState = HOME;
-        break;
-      case SET_STERILIZE_TEMP:
-        sterilizeTemperature = r.getPosition();
-        // EEPROM save
-        interfaceState = HOME;
-        break;
-      case SET_STERILIZE_TIME:
-        sterilizeHour = r.getPosition();
-        // EEPROM save
-        interfaceState = HOME;
-        break;
-    }
+    shortPress = true;
   }
 }
 
@@ -349,10 +315,64 @@ void updateTime() {
 }
 
 void handleInterface() {
+  if (updateInterface) {
+    switch (interfaceState) {
+      case SET_TEMP:
+        setTemperature = r.getPosition();
+        break;
+      case SET_STERILIZE_TEMP:
+        sterilizeTemperature = r.getPosition();
+        break;
+      case SET_STERILIZE_TIME:
+        sterilizeHour = r.getPosition();
+        break;
+      default:
+        updateScreenNow = true;
+        break;
+    }
+    updateInterface = false;
+  }
+
+  if (shortPress) {
+    int p = r.getPosition();
+    switch (interfaceState) {
+      case HOME:
+        interfaceState = SET_VARIABLE;
+        r.resetPosition(0);
+        break;
+      case SET_VARIABLE:
+        switch (p) {
+          case SET_TEMP:
+            r.resetPosition(int(setTemperature));
+            break;
+          case SET_STERILIZE_TEMP:
+            r.resetPosition(int(sterilizeTemperature));
+            break;
+          case SET_STERILIZE_TIME:
+            r.resetPosition(int(sterilizeHour));
+            break;
+        }
+        interfaceState = p;
+        break;
+      case SET_TEMP:
+        // EEPROM save
+        interfaceState = HOME;
+        break;
+      case SET_STERILIZE_TEMP:
+        // EEPROM save
+        interfaceState = HOME;
+        break;
+      case SET_STERILIZE_TIME:
+        // EEPROM save
+        interfaceState = HOME;
+        break;
+    }
+    shortPress = false;
+  }
 }
 
 
-void setup_screen() {
+void setupScreen() {
   display.clearDisplay();
   display.setCursor(0, 0);
   display.setTextSize(1);
@@ -446,12 +466,7 @@ ICACHE_RAM_ATTR void handleLoop() {
 
 // on change
 void rotate(ESPRotary& r) {
-  setTemperature = r.getPosition();
-  updateScreenNow = true;
-}
-
-// on left or right rotattion
-void showDirection(ESPRotary& r) {
+  updateInterface = true;
 }
 
 String BuildSensorJson() {
@@ -463,6 +478,8 @@ String BuildSensorJson() {
   result_json["p"] = PID_p;
   result_json["i"] = PID_i;
   result_json["acc"] = temperatureErrorAccumulator;
+  result_json["state"] = interfaceState;
+  result_json["r"] = r.getPosition();
   result_json["time"] = timeClient.getFormattedTime();
 
   String message = "";
@@ -472,7 +489,11 @@ String BuildSensorJson() {
 }
 
 void runPID() {
-  float error = setTemperature - temperatureF;
+  float targetTemp = setTemperature;
+  if (timeClient.getHours() == sterilizeHour) {
+    targetTemp = sterilizeTemperature;
+  }
+  float error = targetTemp - temperatureF;
   if (error < 15) {
     temperatureErrorAccumulator += error;
   }
