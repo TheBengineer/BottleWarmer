@@ -90,7 +90,7 @@ void updateGUISetTemperature() {
   display.fillRect(82, 17, 58, 14, 0x00);
   display.setTextSize(2);
   display.setCursor(82, 17);
-  display.print(float(setPoint), 0);
+  display.print(float(setTemperature), 0);
   display.display();
   display.setTextSize(1);
 }
