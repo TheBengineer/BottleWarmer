@@ -187,8 +187,8 @@ void loop(void) {
   updateTemperature();
   server.handleClient();
   updateTime();
-  handleInterface();
   updateScreen();
+  handleInterface();
 }
 
 void setupOTA() {
@@ -344,8 +344,14 @@ void handleInterface() {
     switch (interfaceState) {
       case HOME:
         interfaceState = SET_VARIABLE;
-        display.drawCircle(120, 8, 7, SSD1306_WHITE);
-        display.drawLine(120, 1, 120, 6, SSD1306_WHITE);
+        blankTemperature();
+        display.setTextSize(2);
+        display.setCursor(22, 17);
+        display.print("Set:");
+        display.setCursor(22, 33);
+        display.print("Hot:");
+        display.setCursor(22, 49);
+        display.print("Time:");
         display.display();
         r.resetPosition(1);
         break;
@@ -365,8 +371,6 @@ void handleInterface() {
             break;
         }
         interfaceState = p;
-        display.drawCircle(120, 8, 3, SSD1306_WHITE);
-        display.display();
         break;
       case SET_TEMP:
         // EEPROM save
@@ -459,8 +463,12 @@ void updateScreenTimeNow() {
   display.display();
 }
 
-void updateScreenTemperature() {
+void blankTemperature() {
   display.fillRect(20, 16, 108, 48, 0x00);  // blank temperature
+}
+
+void updateScreenTemperature() {
+  blankTemperature();
   display.setCursor(20, 18);
   display.setTextSize(6);
   display.print(temperatureF, 0);
@@ -468,10 +476,19 @@ void updateScreenTemperature() {
   display.setTextSize(1);
 }
 
+void updateGUISetTemperature() {
+  blankTemperature();
+  display.setTextSize(2);
+  display.setCursor(20, 17);
+  display.print(setPoint, 0);
+  display.display();
+  display.setTextSize(1);
+}
+
 void clearSelection() {
-  display.drawRect(0, 0, 24, 9, 0x00);
-  display.drawRect(0, 8, 24, 9, 0x00);
-  display.drawRect(49, 0, 24, 9, 0x00);
+  display.drawRect(20, 16, 48, 17, 0x00);
+  display.drawRect(20, 32, 48, 17, 0x00);
+  display.drawRect(20, 48, 48, 17, 0x00);
 }
 
 void updateSelection() {
@@ -480,13 +497,13 @@ void updateSelection() {
   if (interfaceState == SET_VARIABLE) {
     switch (p) {
       case SET_TEMP:
-        display.drawRect(0, 0, 24, 9, SSD1306_WHITE);
+        display.drawRect(20, 16, 48, 17, SSD1306_WHITE);
         break;
       case SET_STERILIZE_TEMP:
-        display.drawRect(0, 8, 24, 9, SSD1306_WHITE);
+        display.drawRect(20, 32, 48, 17, SSD1306_WHITE);
         break;
       case SET_STERILIZE_TIME:
-        display.drawRect(49, 0, 24, 9, SSD1306_WHITE);
+        display.drawRect(20, 48, 48, 17, SSD1306_WHITE);
         break;
     }
   }
@@ -495,13 +512,16 @@ void updateSelection() {
 
 void updateScreen() {
   if (updateScreenNow) {
-    updateScreenSetTemp();
-    updateScreenSterilizeTemp();
-    updateScreenSterilizeTime();
-    updateScreenSterilizeTime();
-    updateScreenTimeNow();
-    updateScreenTemperature();
-    updateInterface = true;
+    if (interfaceState == HOME) {
+      updateScreenSetTemp();
+      updateScreenSterilizeTemp();
+      updateScreenSterilizeTime();
+      updateScreenSterilizeTime();
+      updateScreenTimeNow();
+      updateScreenTemperature();
+    } else {
+      updateInterface = true;
+    }
     updateScreenNow = false;
   }
 }
