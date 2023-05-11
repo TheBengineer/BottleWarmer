@@ -376,14 +376,14 @@ String BuildSensorJson() {
 
 void runPID() {
   float targetTemp = setTemperature;
-  if (timeClient.getHours() == sterilizeHour) {
+  if (sterilizeHour + 1 >= timeClient.getHours() >= sterilizeHour ) {
     targetTemp = sterilizeTemperature;
   }
   float error = targetTemp - temperatureF;
   if (error < 15) {
     temperatureErrorAccumulator += error;
   }
-  bound(temperatureErrorAccumulator, 0, 20000);
+  temperatureErrorAccumulator = bound(temperatureErrorAccumulator, 0, 20000);
   float out = (PID_p * error) + (PID_i * temperatureErrorAccumulator);
   out = bound(out, 0.0, 100.0);
   setPoint = int(out);
