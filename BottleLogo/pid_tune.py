@@ -40,8 +40,8 @@ with open('temperature_rise.json', 'r') as f:
             average_temperatures.append((last_temperature * .9) + (data['t1'] * .1))
             pwm_value.append(data['pwm'])
             actual_times.append(on_time)
-            if "st_h" in data and on_time.hour == data["st_h"]:
-                target_temps.append(data["hot"])
+            if "target" in data:
+                target_temps.append(data["target"])
             else:
                 target_temps.append(data["set"])
 
