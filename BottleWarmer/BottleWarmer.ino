@@ -46,9 +46,10 @@
 
 float temperatureF = 0;
 float temperatureF2 = 0;
+uint8_t targetTemperature = 104;
 uint8_t setTemperature = 104;
 uint8_t sterilizeTemperature = 160;
-uint8_t sterilizeHour = 4;  // 11PM UTC
+uint8_t sterilizeHour = 3;  // 11PM UTC
 bool updateTemperatureNow = true;
 uint8_t setPoint = 0;
 float temperatureErrorAccumulator = 0;
@@ -358,6 +359,7 @@ String BuildSensorJson() {
   result_json["t1"] = temperatureF;
   result_json["t2"] = temperatureF2;
   result_json["set"] = setTemperature;
+  result_json["target"] = targetTemperature;
   result_json["hot"] = sterilizeTemperature;
   result_json["st_h"] = sterilizeHour;
   result_json["pwm"] = setPoint;
@@ -375,11 +377,11 @@ String BuildSensorJson() {
 }
 
 void runPID() {
-  float targetTemp = setTemperature;
-  if (sterilizeHour + 1 >= timeClient.getHours() >= sterilizeHour ) {
-    targetTemp = sterilizeTemperature;
+  targetTemperature = setTemperature;
+  if (timeClient.getHours() >= sterilizeHour && timeClient.getHours() <= sterilizeHour + 1) {
+    targetTemperature = sterilizeTemperature;
   }
-  float error = targetTemp - temperatureF;
+  float error = targetTemperature - temperatureF;
   if (error < 15) {
     temperatureErrorAccumulator += error;
   }
