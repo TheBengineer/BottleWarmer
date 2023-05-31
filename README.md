@@ -1,6 +1,6 @@
 # Bottle Warmer
 
-## A Crockpot hacked to keep bottles warm
+## A Crockpot hacked to keep baby bottles warm
 <img src="https://github.com/TheBengineer/BottleWarmer/blob/main/github/images/WarmerBox.jpg?raw=true"  width="70%"></img>
 
 This project started one night when I was trying to warm up
