@@ -44,6 +44,7 @@
 
 #define DEVICE_NAME "BottleWarmer"
 
+bool wifiMode = true;
 float temperatureF = 0;
 float temperatureF2 = 0;
 uint8_t targetTemperature = 104;
@@ -128,17 +129,16 @@ void setup(void) {
     display.clearDisplay();
     display.println(F("WIFI not connected."));
     display.display();
-    delay(3000);
-    ESP.reset();
-    delay(5000);
+    wifiMode = false;
+  } else {
+    clearText();
+    display.print(F("Connected to "));
+    display.println(WiFi.SSID());
+    display.print(F("With IP:"));
+    display.println(WiFi.localIP());
+    display.display();
+    delay(1500);
   }
-  clearText();
-  display.print(F("Connected to "));
-  display.println(WiFi.SSID());
-  display.print(F("With IP:"));
-  display.println(WiFi.localIP());
-  display.display();
-  delay(1500);
 
   tickerWifi.attach(30, []() {
     updateWIFINow = true;
@@ -178,7 +178,9 @@ void setup(void) {
 
   timeClient.begin();
   tickerNTP.attach(3600, []() {
-    updateNTPNow = true;
+    if (wifiMode) {
+      updateNTPNow = true;
+    }
   });
   delay(1000);
   setupScreen();
