@@ -10,6 +10,8 @@ some water, so I could make formula, while holding a crying baby.
 
 And then I was buying parts one-handed on Amazon while feeding with the other.
 
+Edit: Two years later it's still running strong. 
+
 ## Project Structure
 ### [Arduino Sketch](BottleWarmer/BottleWarmer.ino)
 ### [Python for monitoring and logo generation](BottleLogo)
